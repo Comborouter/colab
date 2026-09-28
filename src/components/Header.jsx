@@ -1,6 +1,6 @@
 import { Show } from "solid-js";
 import { isAdmin, isClerk, sessOpen } from "../store.js";
-import { openNS, toggleSessPanel, wsShare } from "../actions.js";
+import { toggleSessPanel, wsShare } from "../actions.js";
 import { clerkSignOut } from "../clerk.js";
 import WsBar from "./WsBar.jsx";
 
@@ -11,9 +11,6 @@ export default function Header() {
         <h1 class="text-sm font-semibold tracking-tight">colab-cli</h1>
         <WsBar />
         <span class="flex-1"></span>
-        <button class="btn btn-xs btn-p" onClick={() => openNS(null)}>
-          + new session
-        </button>
         <Show when={isAdmin()}>
           <button
             class="btn btn-xs"

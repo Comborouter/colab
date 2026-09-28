@@ -1,38 +1,18 @@
 import { For, Show } from "solid-js";
 import {
   aliveSessions,
-  deadCount,
-  isAdmin,
   refreshTick,
   pickEp,
   lsSet,
 } from "../store.js";
 import { fmtDur, shortEp } from "../api.js";
-import { openNS, pickEpStore, renameSess, stopSess, viewLog, showTab } from "../actions.js";
-
-function statRow(k, v) {
-  return (
-    <div class="flex justify-between gap-2">
-      <span class="text-neutral-400">{k}</span>
-      <span class="mono text-[10px] text-neutral-700 text-right">{v}</span>
-    </div>
-  );
-}
+import { openNS, renameSess, stopSess } from "../actions.js";
 
 function VmCard(props) {
   const r = () => props.r;
   const age = () => {
     refreshTick();
     return fmtDur(Date.now() - Date.parse(r().first_seen));
-  };
-  const hb = () => {
-    refreshTick();
-    return r().last_ok ? fmtDur(Date.now() - Date.parse(r().last_ok)) + " ago" : "—";
-  };
-  const stTxt = () => {
-    const st = r().last_status;
-    const ok = st === 0 || (st >= 200 && st < 400);
-    return ok ? "ok" : "http " + st;
   };
   const sel = () => r().endpoint === pickEp();
   return (
@@ -65,29 +45,17 @@ function VmCard(props) {
         {shortEp(r().endpoint)} · {r().accelerator || "?"}
         {r().machine_shape && r().machine_shape !== "STANDARD" ? " · high-mem" : ""}
       </div>
-      <div class="grid grid-cols-2 gap-x-4 gap-y-0.5">
-        {statRow("uptime", age())}
-        {statRow("heartbeat", hb())}
-        {statRow("status", stTxt())}
-        {statRow("account", (r().profile || "—").split("@")[0])}
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="mono text-[10px] text-neutral-700">{age()}</span>
+        <span
+          class="mono text-[9px] text-neutral-400 truncate"
+          title={r().profile || ""}
+        >
+          {(r().profile || "—").split("@")[0]}
+        </span>
       </div>
       <div class="flex gap-1.5 mt-auto">
-        <Show when={r().proxy_url}>
-          <a class="btn btn-xs" href={r().proxy_url} target="_blank" rel="noopener">
-            open proxy
-          </a>
-        </Show>
-        <button
-          class="btn btn-xs"
-          title="manage apps on this vm"
-          onClick={() => pickEpStore(r().endpoint)}
-        >
-          apps
-        </button>
         <span class="flex-1"></span>
-        <button class="btn btn-xs" title="session log" onClick={() => viewLog(r().endpoint)}>
-          log
-        </button>
         <button class="btn btn-xs" onClick={() => stopSess(r().endpoint)}>
           stop
         </button>
@@ -106,9 +74,6 @@ export default function VmsGrid() {
             {aliveSessions().length ? "\u00b7 " + aliveSessions().length + " running" : ""}
           </span>
         </span>
-        <button class="btn btn-xs btn-p" onClick={() => openNS(null)}>
-          + new session
-        </button>
       </div>
       <div
         class="p-3 grid gap-2.5"
@@ -128,14 +93,6 @@ export default function VmsGrid() {
           <For each={aliveSessions()}>{(r) => <VmCard r={r} />}</For>
         </Show>
       </div>
-      <Show when={deadCount() > 0 && isAdmin()}>
-        <div class="px-3.5 py-1.5 border-t border-neutral-100">
-          {deadCount()} dead vms — see{" "}
-          <button class="underline" onClick={() => showTab("history")}>
-            history
-          </button>
-        </div>
-      </Show>
     </section>
   );
 }
