@@ -1,0 +1,19 @@
+{
+  "name": "cf-colab-cli-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.9"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "tailwindcss": "^4.1.14",
+    "vite": "^7.1.7",
+    "vite-plugin-solid": "^2.11.8"
+  }
+}
