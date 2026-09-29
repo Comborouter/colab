@@ -87,3 +87,22 @@ npm run watch      # vite build --watch
 npm run dev        # wrangler dev (serves the built SPA locally)
 npm run deploy     # build + wrangler deploy
 ```
+
+## Deploying the frontend to Vercel
+
+This repo is frontend-only and deploys as a static Vite site. The Cloudflare
+Worker stays as the API + cron backend.
+
+1. Import the repo in Vercel (framework preset: Vite, output `dist`).
+2. Set env vars: `VITE_API_URL` (worker origin, e.g.
+   `https://cf-colab-cli.<account>.workers.dev`), plus `VITE_CLERK_PK` and
+   `VITE_CLERK_HOST` (same values the worker injects into `window.__BOOT__`).
+3. On the worker side, list the Vercel origin(s) in `FRONTEND_ORIGINS`
+   (comma-separated) so API responses carry CORS headers; login/logout cookies
+   are `SameSite=None; Secure` outside local dev.
+4. In the Clerk dashboard, allow the Vercel origin for sign-in redirects.
+
+Without worker-injected boot values the app falls back to the `VITE_*` build
+values with password login hidden. All API calls send credentials, so auth
+cookies flow cross-origin. Previews share whatever backend `VITE_API_URL`
+points at.
