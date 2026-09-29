@@ -1,7 +1,18 @@
 import { createSignal, createMemo } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 
-export const boot = window.__BOOT__ || { authed: false, pk: "", host: "" };
+function readBoot() {
+  const injected = window.__BOOT__ || {};
+  if (injected.pk) return injected;
+  const env = (import.meta.env) || {};
+  return {
+    authed: false,
+    pk: env.VITE_CLERK_PK || "",
+    host: env.VITE_CLERK_HOST || "",
+    pw: false,
+  };
+}
+export const boot = readBoot();
 
 export function lsGet(k) {
   try {

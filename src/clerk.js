@@ -1,5 +1,5 @@
 import { boot } from "./store.js";
-import { api } from "./api.js";
+import { api, logout } from "./api.js";
 import { refresh } from "./actions.js";
 
 export function loadClerkJs() {
@@ -28,7 +28,7 @@ export function clerkSignOut() {
         document.cookie = ns[i] + "=; Path=/; Max-Age=0; SameSite=Lax";
       }
     } catch (e) {}
-    location.href = "/logout";
+    logout();
   }
   loadClerkJs();
   const iv = setInterval(function () {

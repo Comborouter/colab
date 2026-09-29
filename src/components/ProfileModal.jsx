@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount, onCleanup } from "solid-js";
 import { profileOpen, setProfileOpen, state, isClerk } from "../store.js";
 import { clerkSignOut } from "../clerk.js";
+import { logout } from "../api.js";
 import { msg } from "../actions.js";
 
 function cu() {
@@ -38,7 +39,7 @@ function openClerkProfile() {
 function signOut() {
   setProfileOpen(false);
   if (cu()) clerkSignOut();
-  else location.href = "/logout";
+  else logout();
 }
 
 function kebab() {

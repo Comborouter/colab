@@ -1,6 +1,7 @@
 import { Show, onMount, onCleanup } from "solid-js";
 import { isClerk, userMenuOpen, setUserMenuOpen, setProfileOpen } from "../store.js";
 import { clerkSignOut } from "../clerk.js";
+import { logout } from "../api.js";
 
 function cu() {
   return (window.Clerk && window.Clerk.user) || null;
@@ -34,7 +35,7 @@ function initial() {
 function signOut() {
   setUserMenuOpen(false);
   if (cu()) clerkSignOut();
-  else location.href = "/logout";
+  else logout();
 }
 
 export default function UserMenu() {

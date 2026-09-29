@@ -1,5 +1,8 @@
+export const API =
+  (import.meta.env && import.meta.env.VITE_API_URL) || "";
+
 export async function api(p, o) {
-  const r = await fetch(p, o);
+  const r = await fetch(API + p, Object.assign({ credentials: "include" }, o));
   if (r.status === 401) {
     location.href = "/";
     throw new Error("unauthorized");
@@ -41,4 +44,11 @@ export function fmtDur(ms) {
 export function shortEp(ep) {
   const p = String(ep).split("-");
   return p[p.length - 1].slice(0, 8);
+}
+
+export async function logout() {
+  try {
+    await fetch(API + "/logout", { credentials: "include" });
+  } catch (e) {}
+  location.href = "/";
 }

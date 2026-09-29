@@ -1,5 +1,6 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
 import { boot } from "../store.js";
+import { API } from "../api.js";
 import { loadClerkJs } from "../clerk.js";
 
 export default function Login() {
@@ -16,6 +17,8 @@ export default function Login() {
   } catch (e) {}
 
   const err = () => /[?&]err=1/.test(location.search);
+  const [denied, setDenied] = createSignal(false);
+  const showErr = () => denied() || err();
   const [showForm, setShowForm] = createSignal(!expect);
   const [showSpin, setShowSpin] = createSignal(expect);
   let revealed = false;
@@ -53,6 +56,25 @@ export default function Login() {
     });
   });
 
+  function doLogin(e) {
+    e.preventDefault();
+    setDenied(false);
+    const fd = new FormData(e.currentTarget);
+    fetch(API + "/login", {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+      redirect: "manual",
+    })
+      .then(function (r) {
+        if (r.status === 200 || r.type === "opaqueredirect") location.href = "/";
+        else setDenied(true);
+      })
+      .catch(function () {
+        setDenied(true);
+      });
+  }
+
   function clksiClick(e) {
     const b = e.currentTarget;
     b.disabled = true;
@@ -81,15 +103,14 @@ export default function Login() {
     <div class="min-h-screen flex items-center justify-center">
       <Show when={showForm()}>
         <form
-          method="POST"
-          action="/login"
+          onSubmit={doLogin}
           class="w-80 border border-neutral-200 rounded-lg p-7 shadow-sm"
         >
           <h1 class="text-base font-semibold tracking-tight">colab-cli</h1>
           <p class="text-xs text-neutral-500 mt-0.5 mb-5">
             keepalive control plane for colab sessions
           </p>
-          <Show when={err()}>
+          <Show when={showErr()}>
             <p class="text-xs text-neutral-800 border border-neutral-300 bg-neutral-50 rounded px-2.5 py-2 mb-4">
               wrong password
             </p>
