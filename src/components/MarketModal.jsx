@@ -1,8 +1,7 @@
 import { For, Show, createMemo } from "solid-js";
-import { mkOpen, mkAdd, mkMsgText, mcat, marketItems, state, refs } from "../store.js";
+import { mkOpen, mkAdd, mcat, marketItems, state, refs } from "../store.js";
 import {
   closeMarket,
-  mkCheck,
   mkUpload,
   mkShowAdd,
   mkSubmit,
@@ -10,11 +9,10 @@ import {
   mkCopy,
   mkSetCat,
   mkMsg,
-  runOnMachines,
-  appDelete,
+  openLaunch,
 } from "../actions.js";
-import SessPills from "./SessPills.jsx";
 import StateCell from "./StateCell.jsx";
+import LaunchDialog from "./LaunchDialog.jsx";
 import { PROMPT } from "../promptText.js";
 
 const CATS = ["all", "apps", "extensions", "community"];
@@ -78,7 +76,7 @@ export default function MarketModal() {
       return typeof u === "string" && u;
     });
     return (
-      <div class="card">
+      <div class="card hover:border-neutral-400 transition-colors">
         <Show when={typeof mf.image === "string" && mf.image}>
           <img
             src={mf.image}
@@ -119,44 +117,9 @@ export default function MarketModal() {
           <StateCell name={it.name} />
         </div>
         <div class="flex gap-1.5 flex-wrap mt-auto">
-          <button
-            class="btn btn-xs"
-            onClick={(e) => {
-              mkMsg("install " + it.name + "\u2026");
-              runOnMachines("install", it.name, e.currentTarget);
-            }}
-          >
-            {isExt ? "add" : "install"}
-          </button>
-          <Show when={!isExt}>
-            <button
-              class="btn btn-xs"
-              onClick={(e) => {
-                mkMsg("launch " + it.name + "\u2026");
-                runOnMachines("launch", it.name, e.currentTarget);
-              }}
-            >
-              launch
-            </button>
-            <button
-              class="btn btn-xs"
-              onClick={(e) => {
-                mkMsg("stop " + it.name + "\u2026");
-                runOnMachines("stop", it.name, e.currentTarget);
-              }}
-            >
-              stop
-            </button>
-          </Show>
-          <button
-            class="btn btn-xs"
-            title="remove from registry"
-            onClick={(e) => {
-              mkMsg("removing " + it.name + "\u2026");
-              appDelete(it.name, e.currentTarget);
-            }}
-          >
-            ×
+          <span class="flex-1"></span>
+          <button class="btn btn-xs" onClick={() => openLaunch(it.name)}>
+            {isExt ? "add" : "launch"}
           </button>
         </div>
       </div>
@@ -164,16 +127,16 @@ export default function MarketModal() {
   };
 
   const communityCard = (it) => (
-    <div class="card">
-      <div class="flex items-start justify-between gap-2">
-        <div>
-          <div class="text-[13px] font-medium leading-tight">{it.title}</div>
-          <div class="mono text-[10px] text-neutral-500">{it.name}</div>
+      <div class="card hover:border-neutral-400 transition-colors">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="text-[13px] font-medium leading-tight">{it.title}</div>
+            <div class="mono text-[10px] text-neutral-500">{it.name}</div>
+          </div>
+          <span class="text-[9px] font-semibold uppercase border border-neutral-300 text-neutral-500 rounded-full px-1.5 py-0.5">
+            {it.category}
+          </span>
         </div>
-        <span class="text-[9px] font-semibold uppercase border border-neutral-300 text-neutral-500 rounded-full px-1.5 py-0.5">
-          {it.category}
-        </span>
-      </div>
       <p class="text-[11px] text-neutral-600 leading-snug">{it.description}</p>
       <div class="flex gap-1.5 flex-wrap mt-auto">
         <Show when={it.url}>
@@ -197,9 +160,6 @@ export default function MarketModal() {
             <h2 class="text-sm font-semibold">marketplace</h2>
             <span class="hint mono">{counts().all} entries</span>
             <span class="flex-1"></span>
-            <button class="btn btn-xs" onClick={mkCheck}>
-              check state
-            </button>
             <label class="btn btn-xs cursor-pointer">
               upload zip
               <input
@@ -222,12 +182,6 @@ export default function MarketModal() {
             <button class="btn btn-xs" onClick={closeMarket}>
               close
             </button>
-          </div>
-          <div class="px-4 py-2 border-b border-neutral-100 flex items-center gap-3 flex-wrap">
-            <span class="hint">on vm:</span>
-            <span class="flex items-center gap-1.5 flex-wrap">
-              <SessPills />
-            </span>
           </div>
           <div class="flex flex-1 min-h-0">
             <aside class="w-44 border-r border-neutral-200 p-2 flex flex-col gap-0.5">
@@ -330,9 +284,7 @@ export default function MarketModal() {
               </div>
             </div>
           </div>
-          <div class="border-t border-neutral-200 px-4 py-2 mono text-[11px] text-neutral-600">
-            {mkMsgText()}
-          </div>
+          <LaunchDialog />
         </div>
       </div>
     </Show>

@@ -7,6 +7,7 @@ import {
   aliveSessions,
   refs,
   setViewEp,
+  dashTab,
 } from "../store.js";
 import { shortEp } from "../api.js";
 import { toggleSessPanel, showTab } from "../actions.js";
@@ -21,7 +22,7 @@ export default function SessionPanel() {
     return all;
   });
   return (
-    <Show when={sessOpen()}>
+    <Show when={sessOpen() || dashTab() === "logs"}>
       <div class="space-y-3">
         <section class="border border-neutral-200 rounded-lg">
           <div class="flex items-center gap-1.5 px-3 py-1.5 border-b border-neutral-200">

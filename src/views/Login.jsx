@@ -94,21 +94,23 @@ export default function Login() {
               wrong password
             </p>
           </Show>
-          <input
-            type="password"
-            name="password"
-            placeholder="dashboard password"
-            autofocus
-            class="w-full text-sm border border-neutral-300 rounded px-3 py-2 mb-3 focus:outline-none focus:border-neutral-900"
-          />
-          <button class="w-full text-sm font-medium bg-neutral-900 text-white rounded px-3 py-2 hover:bg-neutral-700">
-            log in
-          </button>
-          <div class="flex items-center gap-2 my-3">
-            <span class="flex-1 border-t border-neutral-200"></span>
-            <span class="text-[10px] text-neutral-400">or</span>
-            <span class="flex-1 border-t border-neutral-200"></span>
-          </div>
+          <Show when={boot.pw !== false}>
+            <input
+              type="password"
+              name="password"
+              placeholder="dashboard password"
+              autofocus
+              class="w-full text-sm border border-neutral-300 rounded px-3 py-2 mb-3 focus:outline-none focus:border-neutral-900"
+            />
+            <button class="w-full text-sm font-medium bg-neutral-900 text-white rounded px-3 py-2 hover:bg-neutral-700">
+              log in
+            </button>
+            <div class="flex items-center gap-2 my-3">
+              <span class="flex-1 border-t border-neutral-200"></span>
+              <span class="text-[10px] text-neutral-400">or</span>
+              <span class="flex-1 border-t border-neutral-200"></span>
+            </div>
+          </Show>
           <button
             type="button"
             class="w-full text-sm font-medium border border-neutral-300 bg-white rounded px-3 py-2 hover:border-neutral-900"

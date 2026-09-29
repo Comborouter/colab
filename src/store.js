@@ -50,10 +50,24 @@ export const [codeOpen, setCodeOpen] = createSignal(false);
 export const [wsPopOpen, setWsPopOpen] = createSignal(false);
 export const [openMenu, setOpenMenu] = createSignal("");
 export const [refreshTick, setRefreshTick] = createSignal(0);
+export const [route, setRoute] = createSignal("dash");
+export const [createWsOpen, setCreateWsOpen] = createSignal(false);
+export const [profileOpen, setProfileOpen] = createSignal(false);
+export const [userMenuOpen, setUserMenuOpen] = createSignal(false);
+export const [dashTab, setDashTabRaw] = createSignal(lsGet("dashTab") || "overview");
+export const [vmModal, setVmModal] = createSignal("");
+export const [launchApp, setLaunchApp] = createSignal(null);
+export const [launchVars, setLaunchVars] = createSignal({});
+export const [launchMsg, setLaunchMsg] = createSignal("");
 
 export function setSessOpen(v) {
   setSessOpenRaw(v);
   lsSet("sessOpen", v ? "1" : "0");
+}
+
+export function setDashTab(v) {
+  setDashTabRaw(v);
+  lsSet("dashTab", v);
 }
 
 export function nsAppend(t) {

@@ -25,6 +25,11 @@ import {
   setWsPopOpen,
   setOpenMenu,
   setRefreshTick,
+  setLaunchApp,
+  setLaunchVars,
+  setLaunchMsg,
+  launchApp,
+  launchVars,
   sessOpen,
   nsPending,
   evCursor,
@@ -136,17 +141,18 @@ export async function startConnect() {
   }
 }
 
-export async function submitCode(btn) {
-  const code = refs.codeInput ? refs.codeInput.value.trim() : "";
+export async function submitCode(btn, inputEl) {
+  const input = inputEl || refs.codeInput;
+  const code = input ? input.value.trim() : "";
   if (!code) return;
-  busy(btn, "\u2026");
+  busy(btn, "…");
   try {
     await api("/api/connect-submit", {
       method: "POST",
       headers: JSON_HEADERS,
       body: JSON.stringify({ code: code }),
     });
-    refs.codeInput.value = "";
+    input.value = "";
     setCodeOpen(false);
     msg("colab account connected");
     refresh();
@@ -192,6 +198,7 @@ export async function nsCreate(btn) {
   const ac = refs.nsAccel ? refs.nsAccel.value : "NONE";
   const hm = refs.nsHm ? refs.nsHm.checked : false;
   const prof = refs.nsProfile ? refs.nsProfile.value : "";
+  const prov = refs.nsProvider ? refs.nsProvider.value : "colab";
   if (prof) {
     setNsProfile(prof);
     lsSet("nsProfile", prof);
@@ -204,7 +211,7 @@ export async function nsCreate(btn) {
     const r = await api("/api/new", {
       method: "POST",
       headers: JSON_HEADERS,
-      body: JSON.stringify({ name: nm, accelerator: ac, high_mem: hm, profile: prof }),
+      body: JSON.stringify({ name: nm, accelerator: ac, high_mem: hm, profile: prof, provider: prov }),
     });
     if (r.ok) {
       nsAppend("\u2713 " + r.name + " \u2192 " + r.endpoint);
@@ -423,6 +430,110 @@ export function mkSetCat(cat) {
   mkShowAdd(false);
 }
 
+export function openLaunch(name) {
+  const a = (state.apps || []).find(function (x) {
+    return x.name === name;
+  });
+  if (!a) {
+    mkMsg("app not found in registry");
+    return;
+  }
+  const mf = a.meta || {};
+  setLaunchApp({ name: name, mf: mf, isExt: mf.type === "extension" });
+  const v = {};
+  (Array.isArray(mf.vars) ? mf.vars : []).forEach(function (d) {
+    if (d && d.name) v[d.name] = d.default != null ? String(d.default) : "";
+  });
+  setLaunchVars(v);
+  setLaunchMsg("");
+}
+
+export function closeLaunch() {
+  setLaunchApp(null);
+}
+
+function sleepMs(ms) {
+  return new Promise(function (r) {
+    setTimeout(r, ms);
+  });
+}
+
+export async function launchSubmit(btn) {
+  const la = launchApp();
+  if (!la) return;
+  const ep = pickEp();
+  if (!ep) {
+    setLaunchMsg("pick or create a virtual machine first");
+    return;
+  }
+  const defs = Array.isArray(la.mf.vars) ? la.mf.vars : [];
+  const vals = launchVars() || {};
+  for (let i = 0; i < defs.length; i++) {
+    const d = defs[i] || {};
+    if (d.required && !String(vals[d.name] != null ? vals[d.name] : "").trim()) {
+      setLaunchMsg("required: " + (d.label || d.name));
+      return;
+    }
+  }
+  busy(btn, "working");
+  try {
+    setLaunchMsg("installing on " + shortEp(ep) + "…");
+    await api("/api/apps/action", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ action: "install", name: la.name, endpoint: ep, vars: vals }),
+    });
+    let ok = false;
+    let failed = false;
+    for (let i = 0; i < 40; i++) {
+      await sleepMs(3000);
+      try {
+        const r = await api("/api/apps/action", {
+          method: "POST",
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ action: "status", endpoint: ep }),
+        });
+        const s = r && r.all ? r.all[la.name] : null;
+        if (s && s.failed) {
+          failed = true;
+          break;
+        }
+        if (s && s.installed) {
+          ok = true;
+          break;
+        }
+      } catch (e) {}
+    }
+    if (failed) {
+      setLaunchMsg("install failed — read install.log on the vm");
+      return;
+    }
+    if (!ok) {
+      setLaunchMsg("still installing — check back in a bit");
+      return;
+    }
+    if (!la.isExt) {
+      setLaunchMsg("launching…");
+      await api("/api/apps/action", {
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ action: "launch", name: la.name, endpoint: ep, vars: vals }),
+      });
+      setLaunchMsg("launched");
+    } else {
+      setLaunchMsg("installed");
+    }
+    refresh();
+    setTimeout(pollApps, 4000);
+    setTimeout(pollApps, 12000);
+    closeLaunch();
+  } catch (e) {
+    setLaunchMsg("error: " + e);
+  } finally {
+    free(btn);
+  }
+}
+
 export function appMore(name) {
   setOpenMenu(openMenu() === name ? "" : name);
 }
@@ -438,6 +549,84 @@ export async function wsShare() {
     msg("invite link copied (7 days): " + r.url);
   } catch (e) {
     msg("invite failed: " + String(e).slice(0, 120));
+  }
+}
+
+export async function wsCreate(name, logo, slug) {
+  const nm = String(name || "").trim().slice(0, 40);
+  if (!nm) {
+    msg("name the workspace first");
+    return;
+  }
+  const sl = String(slug || "")
+    .trim()
+    .toLowerCase()
+    .slice(0, 40);
+  if (!/^[a-z0-9-]{1,40}$/.test(sl)) {
+    msg("slug: lowercase letters, numbers, dashes");
+    return;
+  }
+  try {
+    const r = await api("/api/ws/create", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ name: nm, logo: logo || "", slug: sl }),
+    });
+    if (!r.ok) {
+      msg(r.error || "create failed");
+      return;
+    }
+    location.reload();
+  } catch (e) {
+    msg("create failed: " + String(e).slice(0, 120));
+  }
+}
+
+export async function wsRename() {
+  const input = refs.wsRename;
+  const nm = input ? input.value.trim().slice(0, 40) : "";
+  const wsid = (state.ws && state.ws.id) || "";
+  if (!wsid || !nm) {
+    msg("name the workspace first");
+    return;
+  }
+  try {
+    const r = await api("/api/ws/rename", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ wsid: wsid, name: nm }),
+    });
+    if (!r.ok) {
+      msg(r.error || "rename failed");
+      return;
+    }
+    msg("workspace renamed");
+    refresh();
+  } catch (e) {
+    msg("rename failed: " + String(e).slice(0, 120));
+  }
+}
+
+export async function wsSaveLogo(dataUrl) {
+  const wsid = (state.ws && state.ws.id) || "";
+  if (!wsid) {
+    msg("no workspace selected");
+    return;
+  }
+  try {
+    const r = await api("/api/ws/logo", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ wsid: wsid, logo: dataUrl }),
+    });
+    if (!r.ok) {
+      msg(r.error || "logo upload failed");
+      return;
+    }
+    msg("logo updated");
+    refresh();
+  } catch (e) {
+    msg("logo upload failed: " + String(e).slice(0, 120));
   }
 }
 

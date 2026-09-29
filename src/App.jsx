@@ -1,12 +1,15 @@
 import { Show } from "solid-js";
-import { boot } from "./store.js";
+import { boot, route } from "./store.js";
 import Login from "./views/Login.jsx";
 import Dash from "./views/Dash.jsx";
+import Workspace from "./views/Workspace.jsx";
 
 export default function App() {
   return (
     <Show when={boot.authed} fallback={<Login />}>
-      <Dash />
+      <Show when={route() === "workspace"} fallback={<Dash />}>
+        <Workspace />
+      </Show>
     </Show>
   );
 }

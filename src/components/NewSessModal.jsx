@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js";
 import { state, nsOpen, nsLogText, nsProfile, refs, setNsProfile } from "../store.js";
 import { lsSet } from "../store.js";
-import { closeNS, nsCreate } from "../actions.js";
+import { closeNS, nsCreate, startConnect, submitCode } from "../actions.js";
 
 const ACCELS = [
   ["NONE", "CPU"],
@@ -23,7 +23,7 @@ export default function NewSessModal() {
   };
   return (
     <Show when={nsOpen()}>
-      <div class="fixed inset-0 z-40">
+      <div class="fixed inset-0 z-[60]">
         <div class="absolute inset-0 bg-black/30" onClick={closeNS}></div>
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(470px,94vw)] bg-white border border-neutral-300 rounded-xl shadow-xl">
           <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
@@ -40,6 +40,10 @@ export default function NewSessModal() {
                 class="inp w-full"
                 ref={(el) => (refs.nsName = el)}
               />
+              <span class="hint text-right">provider</span>
+              <select class="inp w-full" ref={(el) => (refs.nsProvider = el)}>
+                <option value="colab">google colab</option>
+              </select>
               <span class="hint text-right">machine</span>
               <select class="inp w-full" ref={(el) => (refs.nsAccel = el)}>
                 <For each={ACCELS}>
@@ -51,7 +55,31 @@ export default function NewSessModal() {
                 <input type="checkbox" ref={(el) => (refs.nsHm = el)} />
                 <span class="hint">high-mem</span>
               </label>
-              <span class="hint text-right">account</span>
+              <span class="hint text-right">provider</span>
+              <Show
+                when={profiles().length}
+                fallback={
+                  <div class="space-y-2">
+                    <button class="btn btn-xs btn-p" onClick={startConnect}>
+                      connect colab
+                    </button>
+                    <div class="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="paste authorization code"
+                        class="inp flex-1"
+                        ref={(el) => (refs.nsCode = el)}
+                      />
+                      <button
+                        class="btn btn-xs"
+                        onClick={(e) => submitCode(e.currentTarget, refs.nsCode)}
+                      >
+                        authorize
+                      </button>
+                    </div>
+                  </div>
+                }
+              >
               <select
                 class="inp w-full"
                 value={profValue()}
@@ -61,22 +89,18 @@ export default function NewSessModal() {
                 }}
                 ref={(el) => (refs.nsProfile = el)}
               >
-                <Show
-                  when={profiles().length}
-                  fallback={<option value="">(no account — connect colab)</option>}
-                >
-                  <For each={profiles()}>
-                    {(p) => <option value={p.email}>{p.email}</option>}
-                  </For>
-                </Show>
+                <For each={profiles()}>
+                  {(p) => <option value={p.email}>{p.email}</option>}
+                </For>
               </select>
+              </Show>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex justify-end">
               <button class="btn btn-p" onClick={(e) => nsCreate(e.currentTarget)}>
                 create session
               </button>
-              <span class="hint">assignment can take up to a minute</span>
             </div>
+            <p class="hint text-[10px]">assignment can take up to a minute</p>
             <pre class="mono text-[11px] h-32 overflow-y-auto border border-neutral-200 rounded-md p-2.5 bg-neutral-50 text-neutral-700 whitespace-pre-wrap m-0">
               {nsLogText()}
             </pre>
