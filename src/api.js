@@ -2,7 +2,14 @@ export const API =
   (import.meta.env && import.meta.env.VITE_API_URL) || "";
 
 export async function api(p, o) {
-  const r = await fetch(API + p, Object.assign({ credentials: "include" }, o));
+  const headers = Object.assign({}, (o && o.headers) || {});
+  try {
+    if (window.Clerk && window.Clerk.session && !headers["authorization"]) {
+      const t = await window.Clerk.session.getToken();
+      if (t) headers["authorization"] = "Bearer " + t;
+    }
+  } catch (e) {}
+  const r = await fetch(API + p, Object.assign({ credentials: "include" }, o, { headers: headers }));
   if (r.status === 401) {
     location.href = "/";
     throw new Error("unauthorized");
