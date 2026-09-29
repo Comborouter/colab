@@ -1,5 +1,5 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
-import { boot } from "../store.js";
+import { boot, setClaimed } from "../store.js";
 import { API } from "../api.js";
 import { loadClerkJs } from "../clerk.js";
 
@@ -40,7 +40,7 @@ export default function Login() {
       Clerk.load()
         .then(function () {
           if (Clerk.session) {
-            location.replace("/");
+            setClaimed(true);
             return;
           }
           tried = 0;

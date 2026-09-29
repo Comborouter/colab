@@ -62,6 +62,7 @@ export const [wsPopOpen, setWsPopOpen] = createSignal(false);
 export const [openMenu, setOpenMenu] = createSignal("");
 export const [refreshTick, setRefreshTick] = createSignal(0);
 export const [route, setRoute] = createSignal("dash");
+export const [claimed, setClaimed] = createSignal(false);
 export const [createWsOpen, setCreateWsOpen] = createSignal(false);
 export const [profileOpen, setProfileOpen] = createSignal(false);
 export const [userMenuOpen, setUserMenuOpen] = createSignal(false);

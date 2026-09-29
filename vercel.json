@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/api/:path*" },
+    { "source": "/login", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/login" },
+    { "source": "/logout", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/logout" },
+    { "source": "/sessions", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/sessions" },
+    { "source": "/events", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/events" },
+    { "source": "/toggle", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/toggle" }
+  ]
+}
