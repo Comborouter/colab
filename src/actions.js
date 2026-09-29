@@ -22,6 +22,14 @@ import {
   nsResetLog,
   setSessOpen,
   setCodeOpen,
+  setConnectModalOpen,
+  setConnectModalProvider,
+  connectModalOpen,
+  connectModalProvider,
+  configSubTab,
+  setConfigSubTab,
+  setRoute,
+  setDashTab,
   setWsPopOpen,
   setOpenMenu,
   setRefreshTick,
@@ -126,6 +134,29 @@ export async function pollApps() {
       if (r.ok && r.all) setAppStates(ep, reconcile(r.all));
     } catch (e) {}
   }
+}
+
+export function openConnectModal(provider = "colab") {
+  setConnectModalProvider(provider);
+  setConnectModalOpen(true);
+}
+
+export function closeConnectModal() {
+  setConnectModalOpen(false);
+}
+
+export function openWorkspaceSettings() {
+  setWsPopOpen(false);
+  setRoute("dash");
+  setDashTab("configure");
+  setConfigSubTab("settings");
+}
+
+export function openWorkspaceTeam() {
+  setWsPopOpen(false);
+  setRoute("dash");
+  setDashTab("configure");
+  setConfigSubTab("team");
 }
 
 export async function startConnect() {

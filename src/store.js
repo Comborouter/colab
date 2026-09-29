@@ -58,11 +58,19 @@ export const [nsProfile, setNsProfile] = createSignal(lsGet("nsProfile") || "");
 export const [nsLogText, setNsLogText] = createSignal("(console)");
 export const [sessOpen, setSessOpenRaw] = createSignal(lsGet("sessOpen") === "1");
 export const [codeOpen, setCodeOpen] = createSignal(false);
+export const [connectModalOpen, setConnectModalOpen] = createSignal(false);
+export const [connectModalProvider, setConnectModalProvider] = createSignal("colab");
+export const [configSubTab, setConfigSubTab] = createSignal("settings");
 export const [wsPopOpen, setWsPopOpen] = createSignal(false);
 export const [openMenu, setOpenMenu] = createSignal("");
 export const [refreshTick, setRefreshTick] = createSignal(0);
 export const [route, setRoute] = createSignal("dash");
-export const [claimed, setClaimed] = createSignal(false);
+const initialClaimed = lsGet("claimed") === "1" || !!lsGet("wsEmail");
+export const [claimed, setClaimedRaw] = createSignal(initialClaimed);
+export function setClaimed(v) {
+  setClaimedRaw(!!v);
+  lsSet("claimed", v ? "1" : "0");
+}
 export const [createWsOpen, setCreateWsOpen] = createSignal(false);
 export const [profileOpen, setProfileOpen] = createSignal(false);
 export const [userMenuOpen, setUserMenuOpen] = createSignal(false);

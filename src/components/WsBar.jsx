@@ -1,6 +1,6 @@
 import { For, createEffect } from "solid-js";
 import { state, isClerk, wsPopOpen, setWsPopOpen, setCreateWsOpen, setRoute } from "../store.js";
-import { wsSwitch } from "../actions.js";
+import { wsSwitch, openWorkspaceSettings } from "../actions.js";
 import { wsEmailBootstrap } from "../clerk.js";
 import WsLogo from "./WsLogo.jsx";
 import CreateWorkspaceModal from "./CreateWorkspaceModal.jsx";
@@ -44,10 +44,7 @@ export default function WsBar() {
           </span>
           <button
             class="btn btn-xs"
-            onClick={() => {
-              setWsPopOpen(false);
-              setRoute("workspace");
-            }}
+            onClick={openWorkspaceSettings}
           >
             Manage
           </button>

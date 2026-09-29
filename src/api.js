@@ -11,7 +11,6 @@ export async function api(p, o) {
   } catch (e) {}
   const r = await fetch(API + p, Object.assign({ credentials: "include" }, o, { headers: headers }));
   if (r.status === 401) {
-    location.href = "/";
     throw new Error("unauthorized");
   }
   const j = await r.json().catch(function () {

@@ -1,5 +1,5 @@
 import { createSignal, onMount, onCleanup, Show } from "solid-js";
-import { boot, setClaimed } from "../store.js";
+import { boot, setClaimed, claimed, lsGet } from "../store.js";
 import { API } from "../api.js";
 import { loadClerkJs } from "../clerk.js";
 
@@ -32,17 +32,49 @@ export default function Login() {
   };
 
   onMount(function () {
+    // If user has existing session or wsEmail, auto-claim
+    if (lsGet("wsEmail") || lsGet("claimed") === "1") {
+      setClaimed(true);
+      return;
+    }
+
     loadClerkJs();
-    if (expect) setTimeout(reveal, 8000);
+    if (expect) setTimeout(reveal, 2500);
+
+    const checkSession = function () {
+      if (!window.Clerk) return;
+      if (window.Clerk.session || window.Clerk.user) {
+        try {
+          if (location.search.indexOf("__clerk") !== -1) {
+            window.history.replaceState({}, document.title, location.pathname);
+          }
+        } catch (e) {}
+        setClaimed(true);
+        return true;
+      }
+      return false;
+    };
+
+    const attachListener = function () {
+      if (window.Clerk && typeof window.Clerk.addListener === "function" && !window.__cklistened) {
+        window.__cklistened = 1;
+        window.Clerk.addListener(function (emission) {
+          if (emission && (emission.session || emission.user)) {
+            setClaimed(true);
+          }
+        });
+      }
+    };
+
     const iv = setInterval(function () {
-      if (!window.Clerk || tried) return;
+      if (!window.Clerk) return;
+      attachListener();
+      if (checkSession()) return;
+      if (tried) return;
       tried = 1;
       Clerk.load()
         .then(function () {
-          if (Clerk.session) {
-            setClaimed(true);
-            return;
-          }
+          if (checkSession()) return;
           tried = 0;
           if (expect) reveal();
         })
@@ -50,7 +82,8 @@ export default function Login() {
           tried = 0;
           if (expect) reveal();
         });
-    }, 300);
+    }, 200);
+
     onCleanup(function () {
       clearInterval(iv);
     });
@@ -144,7 +177,25 @@ export default function Login() {
       <Show when={showSpin()}>
         <div class="w-80 border border-neutral-200 rounded-lg p-7 shadow-sm text-center">
           <div class="spin" style="margin:0 auto"></div>
-          <p class="text-xs text-neutral-500 mt-3">finishing sign-in…</p>
+          <p class="text-xs text-neutral-500 mt-3 mb-4">finishing sign-in…</p>
+          <div class="flex flex-col gap-2">
+            <Show when={lsGet("wsEmail")}>
+              <button
+                type="button"
+                onClick={() => setClaimed(true)}
+                class="w-full text-xs font-medium bg-neutral-900 text-white rounded px-3 py-1.5 hover:bg-neutral-800 transition cursor-pointer"
+              >
+                Continue as {lsGet("wsEmail")}
+              </button>
+            </Show>
+            <button
+              type="button"
+              onClick={reveal}
+              class="w-full text-xs text-neutral-500 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded px-3 py-1.5 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </Show>
     </div>

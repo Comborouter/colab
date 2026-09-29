@@ -1,5 +1,4 @@
-import { Show } from "solid-js";
-import { isAdmin, sessOpen } from "../store.js";
+import { isAdmin, sessOpen, dashTab, setDashTab } from "../store.js";
 import { toggleSessPanel, wsShare } from "../actions.js";
 import WsBar from "./WsBar.jsx";
 import UserMenu from "./UserMenu.jsx";
@@ -13,8 +12,8 @@ export default function Header() {
         <Show when={isAdmin()}>
           <button
             class="btn btn-xs"
-            classList={{ "btn-p": sessOpen() }}
-            onClick={() => toggleSessPanel()}
+            classList={{ "btn-p": dashTab() === "logs" }}
+            onClick={() => setDashTab(dashTab() === "logs" ? "overview" : "logs")}
           >
             logs
           </button>

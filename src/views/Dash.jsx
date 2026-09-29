@@ -1,22 +1,22 @@
 import { For, Show, onMount, onCleanup } from "solid-js";
-import { state, pickEp, actMsg, dashTab, setDashTab } from "../store.js";
+import { state, pickEp, actMsg, dashTab, setDashTab, sessOpen } from "../store.js";
 import { bootFromCache, joinInvite, refresh, pollApps, openNS } from "../actions.js";
 import Header from "../components/Header.jsx";
 import OverviewTab from "../components/OverviewTab.jsx";
 import AppsPanel from "../components/AppsPanel.jsx";
-import TeamTab from "../components/TeamTab.jsx";
 import SessionPanel from "../components/SessionPanel.jsx";
+import LogsTab from "../components/LogsTab.jsx";
 import ConfigureTab from "../components/ConfigureTab.jsx";
 import NewSessModal from "../components/NewSessModal.jsx";
 import MarketModal from "../components/MarketModal.jsx";
 import ConfigureVmModal from "../components/ConfigureVmModal.jsx";
 import ProfileModal from "../components/ProfileModal.jsx";
+import ConnectProviderModal from "../components/ConnectProviderModal.jsx";
 import BootOverlay from "../components/BootOverlay.jsx";
 
 const TABS = [
   ["overview", "Overview"],
   ["apps", "Apps"],
-  ["team", "Team"],
   ["logs", "Logs"],
   ["configure", "Configure"],
 ];
@@ -24,7 +24,6 @@ const TABS = [
 const TITLES = {
   overview: "Overview",
   apps: "Apps",
-  team: "Team",
   logs: "Logs",
   configure: "Configure",
 };
@@ -99,10 +98,10 @@ export default function Dash() {
         <Show when={dashTab() === "apps"}>
           <AppsPanel />
         </Show>
-        <Show when={dashTab() === "team"}>
-          <TeamTab />
-        </Show>
         <Show when={dashTab() === "logs"}>
+          <LogsTab />
+        </Show>
+        <Show when={sessOpen() && dashTab() !== "logs"}>
           <SessionPanel />
         </Show>
         <Show when={dashTab() === "configure"}>
@@ -113,6 +112,7 @@ export default function Dash() {
       <MarketModal />
       <ConfigureVmModal />
       <ProfileModal />
+      <ConnectProviderModal />
       <BootOverlay />
     </>
   );

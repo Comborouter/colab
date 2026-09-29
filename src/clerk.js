@@ -20,6 +20,7 @@ export function clerkSignOut() {
     done = true;
     try {
       localStorage.removeItem("wsEmail");
+      localStorage.removeItem("claimed");
     } catch (e) {}
     try {
       const ns = ["__session", "__client_uat", "cw"];

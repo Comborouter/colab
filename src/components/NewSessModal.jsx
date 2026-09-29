@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js";
 import { state, nsOpen, nsLogText, nsProfile, refs, setNsProfile } from "../store.js";
 import { lsSet } from "../store.js";
-import { closeNS, nsCreate, startConnect, submitCode } from "../actions.js";
+import { closeNS, nsCreate, startConnect, submitCode, openConnectModal } from "../actions.js";
 
 const ACCELS = [
   ["NONE", "CPU"],
@@ -59,24 +59,15 @@ export default function NewSessModal() {
               <Show
                 when={profiles().length}
                 fallback={
-                  <div class="space-y-2">
-                    <button class="btn btn-xs btn-p" onClick={startConnect}>
-                      connect colab
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      class="btn btn-xs btn-p"
+                      onClick={() => openConnectModal("colab")}
+                    >
+                      + Connect Google Colab
                     </button>
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="paste authorization code"
-                        class="inp flex-1"
-                        ref={(el) => (refs.nsCode = el)}
-                      />
-                      <button
-                        class="btn btn-xs"
-                        onClick={(e) => submitCode(e.currentTarget, refs.nsCode)}
-                      >
-                        authorize
-                      </button>
-                    </div>
+                    <span class="hint">No account connected</span>
                   </div>
                 }
               >

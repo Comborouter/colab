@@ -1,0 +1,8 @@
+{
+  "name": "colab-cli",
+  "description": "Keepalive control plane and workspace management dashboard for Google Colab sessions.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
