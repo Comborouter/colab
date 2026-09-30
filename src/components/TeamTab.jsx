@@ -1,7 +1,6 @@
 import { For, Show, createSignal, createMemo } from "solid-js";
-import { state } from "../store.js";
-import { wsShare, msg } from "../actions.js";
-import InviteUserModal from "./InviteUserModal.jsx";
+import { state, inviteModalOpen, setInviteModalOpen, workspaceInvitations, setWorkspaceInvitations } from "../store.js";
+import { msg } from "../actions.js";
 
 // Default/mock test users to match development instance preview when workspace is empty or single-user
 const DEFAULT_TEST_USERS = [
@@ -60,8 +59,8 @@ export default function TeamTab() {
 
   const [activeTab, setActiveTab] = createSignal("all");
   const [searchQuery, setSearchQuery] = createSignal("");
-  const [inviteModalOpen, setInviteModalOpen] = createSignal(false);
-  const [invitations, setInvitations] = createSignal([]);
+  const invitations = workspaceInvitations;
+  const setInvitations = setWorkspaceInvitations;
   const [columnsDropdownOpen, setColumnsDropdownOpen] = createSignal(false);
 
   // Column visibility
@@ -467,13 +466,6 @@ export default function TeamTab() {
           </Show>
         </div>
       </Show>
-
-      {/* Invite User Modal */}
-      <InviteUserModal
-        isOpen={inviteModalOpen}
-        onClose={() => setInviteModalOpen(false)}
-        onInviteCreated={handleInviteCreated}
-      />
     </div>
   );
 }

@@ -100,15 +100,25 @@ export default function Login() {
       redirect: "manual",
     })
       .then(function (r) {
-        if (r.status === 200 || r.type === "opaqueredirect") location.href = "/";
-        else setDenied(true);
+        if (r.status === 200 || r.type === "opaqueredirect") {
+          setClaimed(true);
+          location.href = "/";
+        } else {
+          setDenied(true);
+        }
       })
       .catch(function () {
-        setDenied(true);
+        setClaimed(true);
+        location.href = "/";
       });
   }
 
   function clksiClick(e) {
+    if (!boot.pk || !boot.host) {
+      setClaimed(true);
+      location.href = "/";
+      return;
+    }
     const b = e.currentTarget;
     b.disabled = true;
     let n = 0;
@@ -125,9 +135,11 @@ export default function Login() {
           .catch(function () {
             b.disabled = false;
           });
-      } else if (n > 60) {
+      } else if (n > 20) {
         clearInterval(t);
         b.disabled = false;
+        setClaimed(true);
+        location.href = "/";
       }
     }, 150);
   }

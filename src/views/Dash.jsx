@@ -1,5 +1,5 @@
 import { For, Show, onMount, onCleanup } from "solid-js";
-import { state, pickEp, actMsg, dashTab, setDashTab, sessOpen } from "../store.js";
+import { state, pickEp, actMsg, dashTab, setDashTab, sessOpen, inviteModalOpen, setInviteModalOpen, setWorkspaceInvitations } from "../store.js";
 import { bootFromCache, joinInvite, refresh, pollApps, openNS } from "../actions.js";
 import Header from "../components/Header.jsx";
 import OverviewTab from "../components/OverviewTab.jsx";
@@ -12,6 +12,7 @@ import MarketModal from "../components/MarketModal.jsx";
 import ConfigureVmModal from "../components/ConfigureVmModal.jsx";
 import ProfileModal from "../components/ProfileModal.jsx";
 import ConnectProviderModal from "../components/ConnectProviderModal.jsx";
+import InviteUserModal from "../components/InviteUserModal.jsx";
 import BootOverlay from "../components/BootOverlay.jsx";
 
 const TABS = [
@@ -113,6 +114,11 @@ export default function Dash() {
       <ConfigureVmModal />
       <ProfileModal />
       <ConnectProviderModal />
+      <InviteUserModal
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        onInviteCreated={(inv) => setWorkspaceInvitations((prev) => [inv, ...prev])}
+      />
       <BootOverlay />
     </>
   );

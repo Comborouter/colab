@@ -1,39 +1,27 @@
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import tailwindcss from "@tailwindcss/vite";
+import { createMockApiMiddleware } from "./src/mockBackend.js";
+
+function mockApiPlugin() {
+  const middleware = createMockApiMiddleware();
+  return {
+    name: "mock-api-plugin",
+    configureServer(server) {
+      server.middlewares.use(middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [solid(), tailwindcss()],
+  plugins: [solid(), tailwindcss(), mockApiPlugin()],
   server: {
     host: "0.0.0.0",
     port: 3000,
     allowedHosts: true,
-    proxy: {
-      "/api": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-      "/login": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-      "/logout": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-      "/sessions": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-      "/events": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-      "/toggle": {
-        target: "https://cf-colab-cli.zambiancivilservant.workers.dev",
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     outDir: "dist",
@@ -41,3 +29,4 @@ export default defineConfig({
     target: "es2022",
   },
 });
+

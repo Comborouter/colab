@@ -1,5 +1,5 @@
-import { isAdmin, sessOpen, dashTab, setDashTab } from "../store.js";
-import { toggleSessPanel, wsShare } from "../actions.js";
+import { Show } from "solid-js";
+import { isAdmin, sessOpen, dashTab, setDashTab, setInviteModalOpen } from "../store.js";
 import WsBar from "./WsBar.jsx";
 import UserMenu from "./UserMenu.jsx";
 
@@ -20,8 +20,8 @@ export default function Header() {
         </Show>
         <button
           class="btn btn-xs"
-          title="copy an invite link to this workspace"
-          onClick={wsShare}
+          title="Invite member to this workspace"
+          onClick={() => setInviteModalOpen(true)}
         >
           Invite
         </button>

@@ -74,6 +74,8 @@ export function setClaimed(v) {
 export const [createWsOpen, setCreateWsOpen] = createSignal(false);
 export const [profileOpen, setProfileOpen] = createSignal(false);
 export const [userMenuOpen, setUserMenuOpen] = createSignal(false);
+export const [inviteModalOpen, setInviteModalOpen] = createSignal(false);
+export const [workspaceInvitations, setWorkspaceInvitations] = createSignal([]);
 export const [dashTab, setDashTabRaw] = createSignal(lsGet("dashTab") || "overview");
 export const [vmModal, setVmModal] = createSignal("");
 export const [launchApp, setLaunchApp] = createSignal(null);
