@@ -59,7 +59,57 @@ export const [sessOpen, setSessOpenRaw] = createSignal(lsGet("sessOpen") === "1"
 export const [codeOpen, setCodeOpen] = createSignal(false);
 export const [connectModalOpen, setConnectModalOpen] = createSignal(false);
 export const [connectModalProvider, setConnectModalProvider] = createSignal("colab");
-export const [configSubTab, setConfigSubTab] = createSignal("settings");
+
+const TABS = ["overview", "apps", "logs", "configure"];
+const SUBS = ["settings", "team", "providers"];
+const pathFromUrl = (function () {
+  const parts = location.pathname.split("/").filter(Boolean);
+  const out = { ws: "", tab: "", sub: "" };
+  if (parts[0]) out.ws = parts[0];
+  if (TABS.indexOf(parts[1]) >= 0) out.tab = parts[1];
+  if (SUBS.indexOf(parts[2]) >= 0) out.sub = parts[2];
+  return out;
+})();
+let urlPrimed = false;
+
+export function consumePathWs() {
+  const w = pathFromUrl.ws;
+  pathFromUrl.ws = "";
+  return w;
+}
+
+export function syncUrl(push) {
+  try {
+    const id = state.ws && state.ws.id;
+    if (!id) return;
+    let p = "/" + id + "/" + dashTab();
+    if (dashTab() === "configure") p += "/" + configSubTab();
+    const target = p + location.search;
+    if (location.pathname + location.search === target) return;
+    const usePush = push === true || (push !== false && urlPrimed);
+    if (usePush) history.pushState(null, "", target);
+    else history.replaceState(null, "", target);
+    urlPrimed = true;
+  } catch (e) {}
+}
+
+window.addEventListener("popstate", function () {
+  try {
+    const parts = location.pathname.split("/").filter(Boolean);
+    const tab = TABS.indexOf(parts[1]) >= 0 ? parts[1] : "overview";
+    setDashTabRaw(tab);
+    if (tab === "configure" && SUBS.indexOf(parts[2]) >= 0) {
+      setConfigSubTabRaw(parts[2]);
+    }
+  } catch (e) {}
+});
+
+const [configSubTabRaw, setConfigSubTabRaw] = createSignal(pathFromUrl.sub || "settings");
+export const configSubTab = configSubTabRaw;
+export function setConfigSubTab(v) {
+  setConfigSubTabRaw(v);
+  syncUrl();
+}
 export const [wsPopOpen, setWsPopOpen] = createSignal(false);
 export const [openMenu, setOpenMenu] = createSignal("");
 export const [refreshTick, setRefreshTick] = createSignal(0);
@@ -75,7 +125,9 @@ export const [profileOpen, setProfileOpen] = createSignal(false);
 export const [userMenuOpen, setUserMenuOpen] = createSignal(false);
 export const [inviteModalOpen, setInviteModalOpen] = createSignal(false);
 export const [workspaceInvitations, setWorkspaceInvitations] = createSignal([]);
-export const [dashTab, setDashTabRaw] = createSignal(lsGet("dashTab") || "overview");
+export const [dashTab, setDashTabRaw] = createSignal(
+  pathFromUrl.tab || lsGet("dashTab") || "overview"
+);
 export const [vmModal, setVmModal] = createSignal("");
 export const [launchApp, setLaunchApp] = createSignal(null);
 export const [launchVars, setLaunchVars] = createSignal({});
@@ -89,6 +141,7 @@ export function setSessOpen(v) {
 export function setDashTab(v) {
   setDashTabRaw(v);
   lsSet("dashTab", v);
+  syncUrl();
 }
 
 export function nsAppend(t) {
@@ -152,8 +205,14 @@ if (import.meta.env.DEV) {
     launchApp,
     nsOpen,
     dashTab,
+    setDashTab,
     configSubTab,
+    setConfigSubTab,
     mkOpen,
+    setMkOpen,
+    mkAdd,
+    setMkAdd,
+    setMcat,
     lsGet,
     lsSet,
   };

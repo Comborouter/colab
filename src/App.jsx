@@ -1,11 +1,28 @@
-import { Show } from "solid-js";
+import { Show, createEffect } from "solid-js";
 import { Toaster } from "solid-toast";
-import { boot, claimed, route } from "./store.js";
+import { boot, claimed, route, state, consumePathWs, syncUrl } from "./store.js";
+import { wsSwitch } from "./actions.js";
 import Login from "./views/Login.jsx";
 import Dash from "./views/Dash.jsx";
 import Workspace from "./views/Workspace.jsx";
 
+let wsPrimed = false;
+
 export default function App() {
+  createEffect(() => {
+    const id = state.ws && state.ws.id;
+    if (!id || wsPrimed) return;
+    wsPrimed = true;
+    const want = consumePathWs();
+    if (want && want !== id) {
+      const ms = state.ws.memberships || [];
+      if (ms.some(function (m) { return m.wsid === want; })) {
+        wsSwitch(want);
+        return;
+      }
+    }
+    syncUrl(false);
+  });
   return (
     <>
       <Show when={boot.authed || claimed()} fallback={<Login />}>

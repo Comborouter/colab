@@ -5,6 +5,7 @@
     { "source": "/logout", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/logout" },
     { "source": "/sessions", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/sessions" },
     { "source": "/events", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/events" },
-    { "source": "/toggle", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/toggle" }
+    { "source": "/toggle", "destination": "https://cf-colab-cli.zambiancivilservant.workers.dev/toggle" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
