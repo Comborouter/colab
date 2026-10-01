@@ -18,7 +18,9 @@ export default function Login() {
 
   const err = () => /[?&]err=1/.test(location.search);
   const [denied, setDenied] = createSignal(false);
-  const showErr = () => denied() || err();
+  const [msg, setMsg] = createSignal("");
+  const showErr = () => denied() || !!msg() || err();
+  const errText = () => msg() || "wrong password";
   const [showForm, setShowForm] = createSignal(!expect);
   const [showSpin, setShowSpin] = createSignal(expect);
   let revealed = false;
@@ -92,6 +94,7 @@ export default function Login() {
   function doLogin(e) {
     e.preventDefault();
     setDenied(false);
+    setMsg("");
     const fd = new FormData(e.currentTarget);
     fetch(API + "/login", {
       method: "POST",
@@ -114,7 +117,7 @@ export default function Login() {
 
   function clksiClick(e) {
     if (!boot.pk || !boot.host) {
-      setDenied(true);
+      setMsg("sign-in is not configured on this build (no clerk key)");
       return;
     }
     const b = e.currentTarget;
@@ -132,11 +135,12 @@ export default function Login() {
           })
           .catch(function () {
             b.disabled = false;
+            setMsg("could not start sign-in, try again");
           });
       } else if (n > 20) {
         clearInterval(t);
         b.disabled = false;
-        setDenied(true);
+        setMsg("sign-in service did not load, check your connection");
       }
     }, 150);
   }
@@ -153,7 +157,7 @@ export default function Login() {
           </h1>
           <Show when={showErr()}>
             <p class="text-xs text-neutral-800 border border-neutral-300 bg-neutral-50 rounded px-2.5 py-2 mb-4">
-              wrong password
+              {errText()}
             </p>
           </Show>
           <Show when={boot.pw !== false}>
