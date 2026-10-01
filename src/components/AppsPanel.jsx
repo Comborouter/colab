@@ -18,19 +18,14 @@ export default function AppsPanel() {
       return s && (s.installed || s.installing || s.running || s.failed);
     });
   });
-  const anyRunning = createMemo(() => {
+  const anyInstalled = createMemo(() => {
     const list = installed();
-    const m = stMap();
-    if (!list || !list.length || !m) return false;
-    return list.some(function (a) {
-      const s = m[a.name];
-      return !!(s && s.running);
-    });
+    return !!(list && list.length);
   });
   return (
     <section class="border border-neutral-200 rounded-lg">
       <Show
-        when={anyRunning()}
+        when={anyInstalled()}
         fallback={
           <div class="flex justify-center py-8">
             <button class="btn btn-p px-6 py-2.5" onClick={openMarket}>
