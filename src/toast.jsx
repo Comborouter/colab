@@ -4,12 +4,12 @@ import toast from "solid-toast";
 const ERR_RE = /\berror|failed|failure|unauthorized|not found|no machine/i;
 
 const IN_FRAMES = [
-  { transform: "translate3d(0,200%,0) scale(.6)", opacity: 0.5 },
-  { transform: "translate3d(0,0,0) scale(1)", opacity: 1 },
+  { transform: "translate3d(110%,0,0)" },
+  { transform: "translate3d(0,0,0)" },
 ];
 const OUT_FRAMES = [
-  { transform: "translate3d(0,0,-1px) scale(1)", opacity: 1 },
-  { transform: "translate3d(0,150%,-1px) scale(.4)", opacity: 0 },
+  { transform: "translate3d(0,0,0)" },
+  { transform: "translate3d(110%,0,0)" },
 ];
 
 export function purinNotify(text) {

@@ -1,7 +1,7 @@
 import { For, Show, createSignal } from "solid-js";
 import { bootMsg, lsGet, lsSet } from "../store.js";
 
-const EQ_BARS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const EQ_BARS = [100, 88, 76, 64, 52, 41, 31, 21, 12];
 
 export default function PurinWelcome() {
   const [acked, setAcked] = createSignal(false);
@@ -26,17 +26,16 @@ export default function PurinWelcome() {
               />
               <div class="flex-1 self-stretch bg-neutral-950 rounded-md flex items-end justify-center gap-[5px] p-2">
                 <For each={EQ_BARS}>
-                  {(i) => (
-                    <span
-                      class="w-2.5 h-full rounded-sm bg-[#39ff14] shadow-[0_0_6px_#39ff14] purin-eq-bar"
-                      style={
-                        "animation-delay:" +
-                        (i * 0.13).toFixed(2) +
-                        "s;animation-duration:" +
-                        (0.85 + (i % 3) * 0.2).toFixed(2) +
-                        "s"
-                      }
-                    ></span>
+                  {(h, i) => (
+                    <div
+                      class="w-2.5 rounded-sm bg-neutral-700 overflow-hidden"
+                      style={"height:" + h + "%"}
+                    >
+                      <span
+                        class="block w-full h-full bg-white purin-eq-bar"
+                        style={"animation-delay:" + (i() * 0.12).toFixed(2) + "s"}
+                      ></span>
+                    </div>
                   )}
                 </For>
               </div>

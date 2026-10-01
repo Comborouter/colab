@@ -148,10 +148,9 @@ export default function Login() {
           onSubmit={doLogin}
           class="w-80 border border-neutral-200 rounded-lg p-7 shadow-sm"
         >
-          <h1 class="text-base font-semibold tracking-tight">combo</h1>
-          <p class="text-xs text-neutral-500 mt-0.5 mb-5">
-            keepalive control plane for colab sessions
-          </p>
+          <h1 class="text-base font-semibold tracking-tight text-center mb-5">
+            combo
+          </h1>
           <Show when={showErr()}>
             <p class="text-xs text-neutral-800 border border-neutral-300 bg-neutral-50 rounded px-2.5 py-2 mb-4">
               wrong password
