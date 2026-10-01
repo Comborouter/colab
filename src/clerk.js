@@ -4,6 +4,7 @@ import { refresh } from "./actions.js";
 
 export function loadClerkJs() {
   if (window.__ckload) return;
+  if (!boot.pk || !boot.host) return;
   window.__ckload = 1;
   const sc = document.createElement("script");
   sc.async = true;
@@ -46,7 +47,7 @@ export function clerkSignOut() {
 }
 
 export function wsEmailBootstrap() {
-  if (localStorage.getItem("wsEmail") || window.__ckme) return;
+  if (window.__ckme) return;
   window.__ckme = 1;
   loadClerkJs();
   const iv2 = setInterval(function () {
@@ -60,12 +61,16 @@ export function wsEmailBootstrap() {
             (u && u.primaryEmailAddress && u.primaryEmailAddress.emailAddress) ||
             (u && u.emailAddress) ||
             "";
+          const nm =
+            (u && u.fullName) ||
+            (u && [u.firstName, u.lastName].filter(Boolean).join(" ")) ||
+            "";
           if (em) {
             localStorage.setItem("wsEmail", em);
             return api("/api/ws/me", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ email: em }),
+              body: JSON.stringify({ email: em, name: nm }),
             })
               .then(function () {
                 return refresh();

@@ -1,7 +1,8 @@
 import { For, Show } from "solid-js";
-import { aliveSessions, state, appStates, refreshTick } from "../store.js";
+import { aliveSessions, state, appStates, refreshTick, setSelEp } from "../store.js";
 import { shortEp } from "../api.js";
 import { setVmModal } from "../store.js";
+import { openMarket } from "../actions.js";
 
 const TILE_COLORS = [
   "bg-lime-600",
@@ -73,7 +74,7 @@ export default function OverviewTab() {
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           <For each={aliveSessions()}>
             {(r) => (
-              <div class="border border-neutral-200 rounded-xl p-5 flex flex-col hover:shadow-md hover:border-neutral-300 transition">
+              <div class="relative border border-neutral-200 rounded-xl p-5 flex flex-col hover:shadow-md hover:border-neutral-300 transition">
                 <div class="w-9 h-9 mb-5 text-neutral-700">
                   <svg
                     fill="none"
@@ -95,6 +96,18 @@ export default function OverviewTab() {
                   onClick={() => setVmModal(r.endpoint)}
                 >
                   Configure
+                </button>
+                <button
+                  class="absolute bottom-4 right-4 h-9 w-9 rounded-full border border-neutral-300 bg-white text-neutral-600 shadow-sm flex items-center justify-center hover:bg-neutral-900 hover:text-white hover:border-neutral-900 transition"
+                  title="Add an app to this VM"
+                  onClick={() => {
+                    setSelEp(r.endpoint);
+                    openMarket();
+                  }}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" d="M12 5v14M5 12h14" />
+                  </svg>
                 </button>
               </div>
             )}

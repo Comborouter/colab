@@ -1,15 +1,15 @@
 import { api, busy, free, shortEp } from "./api.js";
 import { reconcile } from "solid-js/store";
+import { purinNotify } from "./toast.jsx";
 import {
   state,
   setState,
   setAppStates,
+  appStates,
   setMarketItems,
   setMcat,
   setMkOpen,
   setMkAdd,
-  setMkMsgText,
-  setActMsg,
   setBootMsg,
   setViewTab,
   setViewEp,
@@ -52,11 +52,11 @@ import {
 const JSON_HEADERS = { "content-type": "application/json" };
 
 export function msg(t) {
-  setActMsg(String(t));
+  purinNotify(t);
 }
 
 export function mkMsg(t) {
-  setMkMsgText(String(t));
+  purinNotify(t);
 }
 
 export function pickEpStore(ep) {
@@ -489,7 +489,7 @@ function sleepMs(ms) {
   });
 }
 
-export async function launchSubmit(btn) {
+export async function installSubmit(btn) {
   const la = launchApp();
   if (!la) return;
   const ep = pickEp();
@@ -508,61 +508,89 @@ export async function launchSubmit(btn) {
   }
   busy(btn, "working");
   try {
-    setLaunchMsg("installing on " + shortEp(ep) + "…");
-    await api("/api/apps/action", {
+    const r = await api("/api/apps/action", {
       method: "POST",
       headers: JSON_HEADERS,
       body: JSON.stringify({ action: "install", name: la.name, endpoint: ep, vars: vals }),
     });
-    let ok = false;
-    let failed = false;
-    for (let i = 0; i < 40; i++) {
-      await sleepMs(3000);
-      try {
-        const r = await api("/api/apps/action", {
-          method: "POST",
-          headers: JSON_HEADERS,
-          body: JSON.stringify({ action: "status", endpoint: ep }),
-        });
-        const s = r && r.all ? r.all[la.name] : null;
-        if (s && s.failed) {
-          failed = true;
-          break;
-        }
-        if (s && s.installed) {
-          ok = true;
-          break;
-        }
-      } catch (e) {}
-    }
-    if (failed) {
-      setLaunchMsg("install failed — read install.log on the vm");
+    if (r && r.ok === false) {
+      setLaunchMsg(r.error || "install failed");
       return;
     }
-    if (!ok) {
-      setLaunchMsg("still installing — check back in a bit");
-      return;
-    }
-    if (!la.isExt) {
-      setLaunchMsg("launching…");
-      await api("/api/apps/action", {
-        method: "POST",
-        headers: JSON_HEADERS,
-        body: JSON.stringify({ action: "launch", name: la.name, endpoint: ep, vars: vals }),
-      });
-      setLaunchMsg("launched");
-    } else {
-      setLaunchMsg("installed");
-    }
-    refresh();
-    setTimeout(pollApps, 4000);
-    setTimeout(pollApps, 12000);
     closeLaunch();
+    msg("installing " + la.name + " @ " + shortEp(ep) + "…");
+    pollApps();
+    setTimeout(pollApps, 1500);
+    setTimeout(pollApps, 5000);
+    setTimeout(pollApps, 12000);
+    setTimeout(pollApps, 25000);
+    setTimeout(pollApps, 60000);
+    setTimeout(pollApps, 120000);
+    refresh();
   } catch (e) {
     setLaunchMsg("error: " + e);
   } finally {
     free(btn);
   }
+}
+
+export async function marketLaunch(name, btn) {
+  const ep = pickEp();
+  if (!ep) {
+    msg("no machine — provision one first");
+    openNS({ action: "launch", name: name });
+    return;
+  }
+  const cur = () => {
+    const m = appStates[ep];
+    return (m && m[name]) || null;
+  };
+  const s0 = cur();
+  if (s0 && s0.running && s0.url) {
+    window.open(s0.url, "_blank", "noopener");
+    return;
+  }
+  const w = window.open("about:blank", "_blank");
+  busy(btn, "…");
+  msg("launching " + name + " @ " + shortEp(ep) + "…");
+  try {
+    await api("/api/apps/action", {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ action: "launch", name: name, endpoint: ep }),
+    });
+    for (let i = 0; i < 30; i++) {
+      await sleepMs(2000);
+      await pollApps();
+      const s = cur();
+      if (s && s.running && s.url) {
+        if (w && !w.closed) w.location.href = s.url;
+        else window.open(s.url, "_blank", "noopener");
+        msg(name + " running — opened");
+        return;
+      }
+      if (s && s.failed && !s.running) break;
+    }
+    if (w && !w.closed) w.close();
+    msg(name + ": no tunnel yet — app is running on the vm, check back shortly");
+  } catch (e) {
+    if (w && !w.closed) w.close();
+    msg(name + " launch: " + e);
+  } finally {
+    free(btn);
+    refresh();
+    setTimeout(pollApps, 8000);
+  }
+}
+
+export function marketRemove(name, btn) {
+  const ep = pickEp();
+  if (!ep) {
+    msg("no machine — provision one first");
+    return;
+  }
+  if (!confirm("Remove " + name + " from " + shortEp(ep) + "?")) return;
+  runOnMachines("remove", name, btn);
 }
 
 export function appMore(name) {

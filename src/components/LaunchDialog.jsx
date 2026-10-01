@@ -6,19 +6,10 @@ import {
   launchMsg,
   aliveSessions,
   pickEp,
-  state,
-  appStates,
 } from "../store.js";
-import { closeLaunch, launchSubmit, openNS } from "../actions.js";
-import { api, shortEp } from "../api.js";
+import { closeLaunch, installSubmit, openNS } from "../actions.js";
+import { api } from "../api.js";
 import SessPills from "./SessPills.jsx";
-
-function vmLabel(ep) {
-  const r = (state.sessions || []).find(function (x) {
-    return x.endpoint === ep;
-  });
-  return (r && r.name) || shortEp(ep);
-}
 
 function varDefs() {
   const la = launchApp();
@@ -26,15 +17,6 @@ function varDefs() {
   return v.filter(function (d) {
     return d && typeof d.name === "string" && /^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(d.name);
   });
-}
-
-function runningState() {
-  const la = launchApp();
-  const ep = pickEp();
-  if (!la || !ep) return null;
-  const m = appStates[ep];
-  const s = m && m[la.name];
-  return s && s.running ? s : null;
 }
 
 export default function LaunchDialog() {
@@ -71,32 +53,13 @@ export default function LaunchDialog() {
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(440px,94vw)] max-h-[88vh] overflow-y-auto bg-white border border-neutral-300 rounded-xl shadow-xl">
           <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
             <span class="text-sm font-semibold">
-              {launchApp().isExt ? "add" : "launch"}{" "}
-              {launchApp().mf.title || launchApp().name}
+              install {launchApp().mf.title || launchApp().name}
             </span>
             <button class="btn btn-xs" onClick={closeLaunch}>
               close
             </button>
           </div>
           <div class="p-4 space-y-3">
-            <Show when={runningState()}>
-              <div class="flex items-center gap-2 text-xs border border-neutral-200 rounded-lg px-3 py-2 bg-neutral-50 flex-wrap">
-                <span class="mono text-[10px] text-green-600">
-                  running on {vmLabel(pickEp())}
-                </span>
-                <span class="flex-1"></span>
-                <Show when={runningState().url}>
-                  <a
-                    class="btn btn-xs btn-p"
-                    href={runningState().url}
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    open ↗
-                  </a>
-                </Show>
-              </div>
-            </Show>
             <div>
               <div class="ph mb-1.5">virtual machine</div>
               <Show
@@ -154,8 +117,8 @@ export default function LaunchDialog() {
               <p class="mono text-[11px] text-neutral-600">{launchMsg()}</p>
             </Show>
             <div class="flex gap-2">
-              <button class="btn btn-p" onClick={(e) => launchSubmit(e.currentTarget)}>
-                {launchApp().isExt ? "install" : "install & launch"}
+              <button class="btn btn-p" onClick={(e) => installSubmit(e.currentTarget)}>
+                install
               </button>
               <button class="btn" onClick={closeLaunch}>
                 cancel

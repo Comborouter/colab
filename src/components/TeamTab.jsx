@@ -2,58 +2,6 @@ import { For, Show, createSignal, createMemo } from "solid-js";
 import { state, inviteModalOpen, setInviteModalOpen, workspaceInvitations, setWorkspaceInvitations } from "../store.js";
 import { msg } from "../actions.js";
 
-// Default/mock test users to match development instance preview when workspace is empty or single-user
-const DEFAULT_TEST_USERS = [
-  {
-    id: "user_mwila",
-    name: "Mwila _",
-    email: "mpnyirongo@gmail.com",
-    username: "mwila",
-    phone: "-",
-    last_signed_in: "September 29, 2026",
-    joined: "September 29, 2026",
-    avatarBg: "bg-amber-800",
-    initial: "M",
-    role: "Admin",
-  },
-  {
-    id: "user_yoyapazed",
-    name: "yoyapazed yoyapazed",
-    email: "yoyapazed@gmail.com",
-    username: "bbbbb",
-    phone: "-",
-    last_signed_in: "September 26, 2026",
-    joined: "September 26, 2026",
-    avatarBg: "bg-emerald-600",
-    initial: "y",
-    role: "Member",
-  },
-  {
-    id: "user_logariddim",
-    name: "logariddim",
-    email: "logariddim4@gmail.com",
-    username: "logg",
-    phone: "-",
-    last_signed_in: "September 29, 2026",
-    joined: "September 26, 2026",
-    avatarBg: "bg-sky-600",
-    initial: "l",
-    role: "Member",
-  },
-  {
-    id: "user_apex",
-    name: "Apex EpicPlays",
-    email: "sendmewips@gmail.com",
-    username: "kkgrade",
-    phone: "-",
-    last_signed_in: "September 25, 2026",
-    joined: "September 25, 2026",
-    avatarBg: "bg-emerald-600",
-    initial: "A",
-    role: "Viewer",
-  },
-];
-
 export default function TeamTab() {
   const ws = () => state.ws || {};
 
@@ -65,42 +13,42 @@ export default function TeamTab() {
 
   // Column visibility
   const [colVisible, setColVisible] = createSignal({
-    username: true,
-    phone: true,
-    lastSignIn: true,
+    role: true,
     joined: true,
   });
 
+  function fmtDate(raw) {
+    if (!raw) return "—";
+    const d = new Date(raw);
+    if (!isNaN(d.getTime()))
+      return d.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+    return raw;
+  }
+
   const memberList = createMemo(() => {
     const rawMembers = (ws().members || []);
-    if (!rawMembers.length) {
-      return DEFAULT_TEST_USERS;
-    }
 
-    // Merge workspace members with details
-    const mapped = rawMembers.map((m, idx) => {
-      const email = m.email || m.user_id || "member@example.com";
-      const userPart = email.split("@")[0] || "user";
+    // Real workspace members only (owner included - synthesized by the API
+    // when the workspace has no explicit owner membership row)
+    return rawMembers.map((m, idx) => {
+      const email = m.email || "";
+      const id = m.user_id || "";
+      const label = email ? email.split("@")[0] : "";
+      const name = m.name || label || (m.role === "owner" ? "Owner" : id || "Member");
       return {
-        id: m.id || m.user_id || "usr_" + idx,
-        name: m.name || userPart,
-        email: email,
-        username: m.username || userPart.slice(0, 8),
-        phone: m.phone || "-",
-        last_signed_in: m.last_signed_in || "September 29, 2026",
-        joined: m.joined || "September 29, 2026",
+        id: id || "usr_" + idx,
+        name: name,
+        sub: email || id || "—",
+        role: m.role || "member",
+        joined: fmtDate(m.joined_at),
         avatarBg: idx % 3 === 0 ? "bg-amber-800" : idx % 3 === 1 ? "bg-emerald-600" : "bg-sky-600",
-        initial: (m.name || userPart || "U").slice(0, 1).toUpperCase(),
-        role: m.role || "Member",
+        initial: (name || "U").slice(0, 1).toUpperCase(),
       };
     });
-
-    // If only 1 member, merge test users for preview richness
-    if (mapped.length === 1 && !DEFAULT_TEST_USERS.some(u => u.email === mapped[0].email)) {
-      return [mapped[0], ...DEFAULT_TEST_USERS.slice(1)];
-    }
-
-    return mapped;
   });
 
   const filteredMembers = createMemo(() => {
@@ -109,8 +57,8 @@ export default function TeamTab() {
     return memberList().filter(
       (u) =>
         u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.username.toLowerCase().includes(q)
+        u.sub.toLowerCase().includes(q) ||
+        u.role.toLowerCase().includes(q)
     );
   });
 
@@ -213,29 +161,11 @@ export default function TeamTab() {
                 <label class="flex items-center gap-2 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 rounded cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={colVisible().username}
-                    onChange={(e) => setColVisible({ ...colVisible(), username: e.target.checked })}
+                    checked={colVisible().role}
+                    onChange={(e) => setColVisible({ ...colVisible(), role: e.target.checked })}
                     class="rounded text-neutral-900"
                   />
-                  <span>Username</span>
-                </label>
-                <label class="flex items-center gap-2 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={colVisible().phone}
-                    onChange={(e) => setColVisible({ ...colVisible(), phone: e.target.checked })}
-                    class="rounded text-neutral-900"
-                  />
-                  <span>Phone number</span>
-                </label>
-                <label class="flex items-center gap-2 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={colVisible().lastSignIn}
-                    onChange={(e) => setColVisible({ ...colVisible(), lastSignIn: e.target.checked })}
-                    class="rounded text-neutral-900"
-                  />
-                  <span>Last signed in</span>
+                  <span>Role</span>
                 </label>
                 <label class="flex items-center gap-2 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 rounded cursor-pointer">
                   <input
@@ -262,7 +192,7 @@ export default function TeamTab() {
           </button>
         </div>
 
-        {/* Right: + Create User (Invite) Button */}
+        {/* Right: Invite Button */}
         <button
           type="button"
           onClick={() => setInviteModalOpen(true)}
@@ -272,7 +202,7 @@ export default function TeamTab() {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          <span>Create user</span>
+          <span>Invite</span>
         </button>
       </div>
 
@@ -303,15 +233,9 @@ export default function TeamTab() {
             <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="border-b border-neutral-100 bg-neutral-50/40 text-neutral-500 font-medium">
-                  <th class="py-3 px-5 font-medium">Test users</th>
-                  <Show when={colVisible().username}>
-                    <th class="py-3 px-4 font-medium">Username</th>
-                  </Show>
-                  <Show when={colVisible().phone}>
-                    <th class="py-3 px-4 font-medium">Phone number</th>
-                  </Show>
-                  <Show when={colVisible().lastSignIn}>
-                    <th class="py-3 px-4 font-medium">Last signed in</th>
+                  <th class="py-3 px-5 font-medium">Member</th>
+                  <Show when={colVisible().role}>
+                    <th class="py-3 px-4 font-medium">Role</th>
                   </Show>
                   <Show when={colVisible().joined}>
                     <th class="py-3 px-4 font-medium">
@@ -342,30 +266,24 @@ export default function TeamTab() {
                               {u.name}
                             </div>
                             <div class="text-[11px] text-neutral-400">
-                              {u.email}
+                              {u.sub}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Username Column */}
-                      <Show when={colVisible().username}>
-                        <td class="py-3.5 px-4 font-mono text-[11px] text-neutral-600">
-                          {u.username}
-                        </td>
-                      </Show>
-
-                      {/* Phone Column */}
-                      <Show when={colVisible().phone}>
-                        <td class="py-3.5 px-4 text-neutral-400">
-                          {u.phone}
-                        </td>
-                      </Show>
-
-                      {/* Last signed in Column */}
-                      <Show when={colVisible().lastSignIn}>
-                        <td class="py-3.5 px-4 text-neutral-600">
-                          {u.last_signed_in}
+                      {/* Role Column */}
+                      <Show when={colVisible().role}>
+                        <td class="py-3.5 px-4 capitalize text-neutral-700">
+                          <span
+                            class={
+                              u.role === "owner"
+                                ? "inline-flex items-center rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] font-semibold text-white"
+                                : "inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold text-neutral-700 border border-neutral-200"
+                            }
+                          >
+                            {u.role}
+                          </span>
                         </td>
                       </Show>
 
@@ -399,7 +317,7 @@ export default function TeamTab() {
                 </div>
                 <h3 class="text-sm font-semibold text-neutral-900">No pending invitations</h3>
                 <p class="text-xs text-neutral-500 max-w-sm mx-auto">
-                  When you invite members by email, pending invitation links will appear here.
+                  Generated invite links will appear here.
                 </p>
                 <button
                   type="button"
@@ -426,7 +344,7 @@ export default function TeamTab() {
                   {(inv, idx) => (
                     <tr class="hover:bg-neutral-50/60 transition">
                       <td class="py-3 px-5 font-medium text-neutral-900">
-                        {inv.email}
+                        {inv.email || "Anyone with the link"}
                       </td>
                       <td class="py-3 px-4 capitalize text-neutral-600">
                         {inv.role}

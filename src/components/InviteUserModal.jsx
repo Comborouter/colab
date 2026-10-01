@@ -1,10 +1,8 @@
 import { Show, createSignal, onCleanup } from "solid-js";
 import { api } from "../api.js";
 import { msg } from "../actions.js";
-import { state } from "../store.js";
 
 export default function InviteUserModal(props) {
-  const [email, setEmail] = createSignal("");
   const [role, setRole] = createSignal("member");
   const [loading, setLoading] = createSignal(false);
   const [inviteUrl, setInviteUrl] = createSignal("");
@@ -12,7 +10,6 @@ export default function InviteUserModal(props) {
   const [error, setError] = createSignal("");
 
   function handleClose() {
-    setEmail("");
     setRole("member");
     setInviteUrl("");
     setCopied(false);
@@ -31,11 +28,6 @@ export default function InviteUserModal(props) {
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
-    const em = email().trim();
-    if (!em) {
-      setError("Please enter an email address.");
-      return;
-    }
 
     setLoading(true);
     setError("");
@@ -44,14 +36,13 @@ export default function InviteUserModal(props) {
       const res = await api("/api/ws/invite", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: em, role: role() }),
+        body: JSON.stringify({ role: role() }),
       });
 
       let url = res && res.url;
       if (!url) {
-        // Fallback standard code
-        const code = Math.random().toString(36).substring(2, 10);
-        url = `${window.location.origin}/?invite=${code}`;
+        setError("Backend did not return an invite url.");
+        return;
       }
 
       setInviteUrl(url);
@@ -60,11 +51,11 @@ export default function InviteUserModal(props) {
         setCopied(true);
       }
 
-      msg("Invite created and copied to clipboard!");
+      msg("Invite link copied to clipboard!");
 
       if (props.onInviteCreated) {
         props.onInviteCreated({
-          email: em,
+          email: "",
           role: role(),
           url: url,
           created_at: "Just now",
@@ -72,25 +63,7 @@ export default function InviteUserModal(props) {
         });
       }
     } catch (err) {
-      // Create local valid invite link if backend is in local mock mode
-      const code = Math.random().toString(36).substring(2, 10);
-      const url = `${window.location.origin}/?invite=${code}`;
-      setInviteUrl(url);
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url).catch(() => {});
-        setCopied(true);
-      }
-      msg("Invite link created: " + url);
-
-      if (props.onInviteCreated) {
-        props.onInviteCreated({
-          email: em,
-          role: role(),
-          url: url,
-          created_at: "Just now",
-          status: "Pending",
-        });
-      }
+      setError((err && err.message) || "Invite failed");
     } finally {
       setLoading(false);
     }
@@ -125,30 +98,11 @@ export default function InviteUserModal(props) {
               Invite user
             </h2>
             <p class="mt-1 text-xs text-neutral-500">
-              Invite a user to your workspace by email
+              Generate a link to invite someone to this workspace
             </p>
           </div>
 
           <form onSubmit={handleSubmit} class="space-y-4">
-            {/* Email Field */}
-            <div>
-              <label class="block text-xs font-semibold text-neutral-900 mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="john@example.com"
-                value={email()}
-                onInput={(e) => {
-                  setEmail(e.currentTarget.value);
-                  setError("");
-                }}
-                autofocus
-                class="w-full rounded-lg border border-neutral-200 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-black/5"
-              />
-            </div>
-
             {/* Role Field */}
             <div>
               <label class="block text-xs font-semibold text-neutral-900 mb-1.5">
@@ -223,7 +177,7 @@ export default function InviteUserModal(props) {
                 <Show when={loading()}>
                   <span class="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                 </Show>
-                <span>{inviteUrl() ? "Invite another" : "Invite"}</span>
+                <span>{inviteUrl() ? "Generate another" : "Generate link"}</span>
               </button>
             </div>
           </form>

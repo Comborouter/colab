@@ -1,5 +1,4 @@
-import { Show } from "solid-js";
-import { isAdmin, sessOpen, dashTab, setDashTab, setInviteModalOpen } from "../store.js";
+import { setInviteModalOpen } from "../store.js";
 import WsBar from "./WsBar.jsx";
 import UserMenu from "./UserMenu.jsx";
 
@@ -9,15 +8,6 @@ export default function Header() {
       <div class="max-w-5xl mx-auto px-4 h-11 flex items-center gap-3">
         <WsBar />
         <span class="flex-1"></span>
-        <Show when={isAdmin()}>
-          <button
-            class="btn btn-xs"
-            classList={{ "btn-p": dashTab() === "logs" }}
-            onClick={() => setDashTab(dashTab() === "logs" ? "overview" : "logs")}
-          >
-            logs
-          </button>
-        </Show>
         <button
           class="btn btn-xs"
           title="Invite member to this workspace"

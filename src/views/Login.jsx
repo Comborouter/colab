@@ -108,15 +108,13 @@ export default function Login() {
         }
       })
       .catch(function () {
-        setClaimed(true);
-        location.href = "/";
+        setDenied(true);
       });
   }
 
   function clksiClick(e) {
     if (!boot.pk || !boot.host) {
-      setClaimed(true);
-      location.href = "/";
+      setDenied(true);
       return;
     }
     const b = e.currentTarget;
@@ -138,8 +136,7 @@ export default function Login() {
       } else if (n > 20) {
         clearInterval(t);
         b.disabled = false;
-        setClaimed(true);
-        location.href = "/";
+        setDenied(true);
       }
     }, 150);
   }
@@ -151,7 +148,7 @@ export default function Login() {
           onSubmit={doLogin}
           class="w-80 border border-neutral-200 rounded-lg p-7 shadow-sm"
         >
-          <h1 class="text-base font-semibold tracking-tight">colab-cli</h1>
+          <h1 class="text-base font-semibold tracking-tight">combo</h1>
           <p class="text-xs text-neutral-500 mt-0.5 mb-5">
             keepalive control plane for colab sessions
           </p>

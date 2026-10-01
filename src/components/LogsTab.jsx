@@ -282,7 +282,6 @@ function getNormalizedEvents(rawEvents, currentUser, currentWs) {
 }
 
 export default function LogsTab() {
-  const [selectedCategory, setSelectedCategory] = createSignal("app"); // "app" | "sms"
   const [searchQuery, setSearchQuery] = createSignal("");
   const [selectedEventType, setSelectedEventType] = createSignal("all");
   const [selectedActor, setSelectedActor] = createSignal("all");
@@ -366,11 +365,6 @@ export default function LogsTab() {
     else if (tr === "30d") cutoff = now - 30 * 24 * 60 * 60 * 1000;
 
     return events().filter((e) => {
-      // Category filter
-      if (selectedCategory() === "sms") {
-        return false; // No SMS logs currently
-      }
-
       // Time range filter
       if (cutoff > 0) {
         const evTime = new Date(e.ts).getTime();
@@ -466,40 +460,6 @@ export default function LogsTab() {
       </div>
 
       <div class="flex items-start gap-6">
-        {/* Left Sub-nav Sidebar */}
-        <aside class="w-48 shrink-0">
-          <nav class="space-y-1">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory("app")}
-              class={`flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium rounded-lg transition text-left ${
-                selectedCategory() === "app"
-                  ? "bg-neutral-100 text-neutral-900 font-semibold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
-              }`}
-            >
-              <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              <span>Application</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedCategory("sms")}
-              class={`flex items-center gap-2.5 w-full px-3 py-2 text-sm font-medium rounded-lg transition text-left ${
-                selectedCategory() === "sms"
-                  ? "bg-neutral-100 text-neutral-900 font-semibold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
-              }`}
-            >
-              <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span>SMS</span>
-            </button>
-          </nav>
-        </aside>
-
         {/* Main Content Area */}
         <div class="flex-1 min-w-0 space-y-4">
           {/* Top Filter Bar */}

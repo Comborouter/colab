@@ -1,5 +1,5 @@
 import { For, Show, onMount, onCleanup } from "solid-js";
-import { state, pickEp, actMsg, dashTab, setDashTab, sessOpen, inviteModalOpen, setInviteModalOpen, setWorkspaceInvitations } from "../store.js";
+import { state, pickEp, dashTab, setDashTab, sessOpen, inviteModalOpen, setInviteModalOpen, setWorkspaceInvitations } from "../store.js";
 import { bootFromCache, joinInvite, refresh, pollApps, openNS } from "../actions.js";
 import Header from "../components/Header.jsx";
 import OverviewTab from "../components/OverviewTab.jsx";
@@ -13,6 +13,7 @@ import ConfigureVmModal from "../components/ConfigureVmModal.jsx";
 import ProfileModal from "../components/ProfileModal.jsx";
 import ConnectProviderModal from "../components/ConnectProviderModal.jsx";
 import InviteUserModal from "../components/InviteUserModal.jsx";
+import PurinWelcome from "../components/PurinWelcome.jsx";
 import BootOverlay from "../components/BootOverlay.jsx";
 
 const TABS = [
@@ -76,9 +77,6 @@ export default function Dash() {
           </For>
         </nav>
       </div>
-      <p class="max-w-5xl mx-auto px-4 mono text-[11px] text-neutral-600 pt-2 min-h-[14px]">
-        {actMsg()}
-      </p>
       <main class="max-w-5xl mx-auto px-4 pb-6 space-y-3">
         <Show when={dashTab() === "overview"}>
           <div class="flex items-center justify-between">
@@ -119,6 +117,7 @@ export default function Dash() {
         onClose={() => setInviteModalOpen(false)}
         onInviteCreated={(inv) => setWorkspaceInvitations((prev) => [inv, ...prev])}
       />
+      <PurinWelcome />
       <BootOverlay />
     </>
   );

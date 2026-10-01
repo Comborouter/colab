@@ -1,5 +1,5 @@
 import { For, Show, createMemo } from "solid-js";
-import { mkOpen, mkAdd, mcat, marketItems, state, refs } from "../store.js";
+import { mkOpen, mkAdd, mcat, marketItems, state, refs, appStates, pickEp } from "../store.js";
 import {
   closeMarket,
   mkUpload,
@@ -10,6 +10,8 @@ import {
   mkSetCat,
   mkMsg,
   openLaunch,
+  marketLaunch,
+  marketRemove,
 } from "../actions.js";
 import StateCell from "./StateCell.jsx";
 import LaunchDialog from "./LaunchDialog.jsx";
@@ -61,6 +63,11 @@ export default function MarketModal() {
   const uploadCard = (it) => {
     const mf = it.mf;
     const isExt = it.cat === "extensions";
+    const st = () => {
+      const ep = pickEp();
+      const m = ep ? appStates[ep] : null;
+      return (m && m[it.name]) || null;
+    };
     const metaBits = [
       mf.version || "v?",
       isExt ? "\u2192 " + (mf.target || "?") : ":" + (mf.port || "?"),
@@ -112,15 +119,49 @@ export default function MarketModal() {
             </For>
           </div>
         </Show>
-        <div class="mono text-[9px] text-neutral-400">{life.join(" \u00b7 ")}</div>
+        <div class="mono text-[9px] text-neutral-400">{life.join(" · ")}</div>
         <div>
           <StateCell name={it.name} />
         </div>
-        <div class="flex gap-1.5 flex-wrap mt-auto">
+        <div class="flex gap-1.5 flex-wrap items-center mt-auto">
           <span class="flex-1"></span>
-          <button class="btn btn-xs" onClick={() => openLaunch(it.name)}>
-            {isExt ? "add" : "launch"}
-          </button>
+          <Show
+            when={st()}
+            fallback={
+              <button class="btn btn-xs" onClick={() => openLaunch(it.name)}>
+                install
+              </button>
+            }
+          >
+            <Show when={st().installing}>
+              <button class="btn btn-xs" disabled>
+                installing…
+              </button>
+            </Show>
+            <Show when={!st().installing && !st().installed}>
+              <button class="btn btn-xs" onClick={() => openLaunch(it.name)}>
+                {st().failed ? "retry install" : "install"}
+              </button>
+            </Show>
+            <Show when={st().installed && !isExt}>
+              <button
+                class="btn btn-xs btn-p"
+                title="start (or open if already running)"
+                onClick={(e) => marketLaunch(it.name, e.currentTarget)}
+              >
+                launch
+              </button>
+            </Show>
+            <Show when={st().installed}>
+              <button
+                class="btn btn-xs"
+                title="remove from this vm"
+                onClick={(e) => marketRemove(it.name, e.currentTarget)}
+              >
+                ×
+              </button>
+            </Show>
+          </Show>
         </div>
       </div>
     );

@@ -31,5 +31,5 @@ export default function StateCell(props) {
     if (st.installed) return <span class="mono text-[10px] text-neutral-500">installed</span>;
     return <span class="mono text-[10px] text-neutral-400">not installed</span>;
   };
-  return cell();
+  return <>{cell()}</>;
 }
