@@ -43,6 +43,7 @@ export const [marketItems, setMarketItems] = createSignal([]);
 export const [mcat, setMcat] = createSignal("all");
 export const [mkOpen, setMkOpen] = createSignal(false);
 export const [mkAdd, setMkAdd] = createSignal(false);
+export const [tourOpen, setTourOpen] = createSignal(false);
 export const [bootMsg, setBootMsg] = createSignal("loading state\u2026");
 export const [viewTab, setViewTab] = createSignal(lsGet("viewTab") || "log");
 export const [viewEp, setViewEp] = createSignal("");

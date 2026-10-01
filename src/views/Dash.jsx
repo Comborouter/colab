@@ -14,6 +14,7 @@ import ProfileModal from "../components/ProfileModal.jsx";
 import ConnectProviderModal from "../components/ConnectProviderModal.jsx";
 import InviteUserModal from "../components/InviteUserModal.jsx";
 import PurinWelcome from "../components/PurinWelcome.jsx";
+import TourOverlay from "../components/TourOverlay.jsx";
 import BootOverlay from "../components/BootOverlay.jsx";
 
 const TABS = [
@@ -118,6 +119,7 @@ export default function Dash() {
         onInviteCreated={(inv) => setWorkspaceInvitations((prev) => [inv, ...prev])}
       />
       <PurinWelcome />
+      <TourOverlay />
       <BootOverlay />
     </>
   );

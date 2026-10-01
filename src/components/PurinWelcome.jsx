@@ -1,5 +1,5 @@
 import { Show, createSignal } from "solid-js";
-import { bootMsg, lsGet, lsSet } from "../store.js";
+import { bootMsg, lsGet, lsSet, setTourOpen } from "../store.js";
 
 export default function PurinWelcome() {
   const [acked, setAcked] = createSignal(false);
@@ -9,6 +9,7 @@ export default function PurinWelcome() {
   const close = function () {
     lsSet("purin_welcome", "1");
     setAcked(true);
+    if (lsGet("purin_tour") !== "1") setTourOpen(true);
   };
   return (
     <Show when={show()}>
@@ -19,20 +20,20 @@ export default function PurinWelcome() {
             <img
               src="/purin_profile.png"
               alt="Purin the hippo mascot"
-              class="w-full rounded-md object-cover object-top"
+              class="w-[56%] mx-auto rounded-md object-cover object-top"
             />
-            <div class="mt-2 text-[15px] text-neutral-900">purin-chan(プリンちゃん)</div>
-            <p class="mt-5 text-[14.5px] leading-relaxed text-neutral-800">
-              Welcome to combo! I'm your hippo helper. Spin up a VM, grab apps from the
-              marketplace - I'll track every install. Anything that finishes, fails or
-              needs a nudge lands right here as a toast. Just watch this corner.
+            <div class="mt-2 text-[15px] font-semibold text-center text-neutral-900">
+              purin-chan(プリンちゃん)
+            </div>
+            <p class="mt-5 text-[14.5px] leading-relaxed text-center text-neutral-800">
+              I'm Purin, here to help.
             </p>
             <div class="mt-7 flex justify-center">
               <button
                 class="px-9 py-2.5 border-2 border-neutral-900 rounded-full text-[15px] font-medium bg-white text-neutral-900 hover:bg-neutral-900 hover:text-white transition"
                 onClick={close}
               >
-                Got it
+                はい
               </button>
             </div>
           </div>
