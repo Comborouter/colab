@@ -54,6 +54,10 @@ export function shortEp(ep) {
 
 export async function logout() {
   try {
+    localStorage.removeItem("claimed");
+    localStorage.removeItem("wsEmail");
+  } catch (e) {}
+  try {
     await fetch(API + "/logout", { credentials: "include" });
   } catch (e) {}
   location.href = "/";

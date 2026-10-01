@@ -15,11 +15,18 @@ export default function App() {
     wsPrimed = true;
     const want = consumePathWs();
     if (want && want !== id) {
+      if (sessionStorage.getItem("wsSwitchTried:" + want)) {
+        sessionStorage.removeItem("wsSwitchTried:" + want);
+        syncUrl(false);
+        return;
+      }
       const ms = state.ws.memberships || [];
       if (ms.some(function (m) { return m.wsid === want; })) {
         wsSwitch(want);
         return;
       }
+    } else if (want) {
+      sessionStorage.removeItem("wsSwitchTried:" + want);
     }
     syncUrl(false);
   });

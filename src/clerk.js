@@ -65,12 +65,13 @@ export function wsEmailBootstrap() {
             (u && u.fullName) ||
             (u && [u.firstName, u.lastName].filter(Boolean).join(" ")) ||
             "";
+          const un = (u && u.username) || "";
           if (em) {
             localStorage.setItem("wsEmail", em);
             return api("/api/ws/me", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ email: em, name: nm }),
+              body: JSON.stringify({ email: em, name: nm, username: un }),
             })
               .then(function () {
                 return refresh();

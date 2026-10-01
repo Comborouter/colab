@@ -90,6 +90,9 @@ export function bootFromCache() {
   } catch (e) {}
   if (cached && cached.s && Array.isArray(cached.s.sessions)) {
     setState(reconcile(cached.s));
+    // the cached workspace id is stale right after a switch — blank it so
+    // URL routing only ever compares against a fresh network id
+    setState("ws", "id", "");
     setBootMsg(null);
   } else {
     setEvCursor(0);
@@ -696,6 +699,12 @@ export function wsSwitch(wsid) {
     body: JSON.stringify({ wsid: wsid }),
   })
     .then(function () {
+      try {
+        sessionStorage.setItem("wsSwitchTried:" + wsid, "1");
+        const parts = location.pathname.split("/").filter(Boolean);
+        parts[0] = wsid;
+        history.replaceState(null, "", "/" + parts.join("/") + location.search);
+      } catch (e) {}
       location.reload();
     })
     .catch(function () {
@@ -713,7 +722,11 @@ export function joinInvite() {
   })
     .then(function (r) {
       msg(r && r.ok ? "joined workspace" : (r && r.error) || "join failed");
-      history.replaceState(null, "", location.pathname);
+      try {
+        const parts = location.pathname.split("/").filter(Boolean);
+        if (r && r.ok && r.wsid) parts[0] = r.wsid;
+        history.replaceState(null, "", "/" + parts.join("/"));
+      } catch (e) {}
       if (r && r.ok)
         setTimeout(function () {
           location.reload();

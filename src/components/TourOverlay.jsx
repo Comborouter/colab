@@ -323,12 +323,18 @@ export default function TourOverlay() {
                   </p>
                 )}
               </For>
-              <div class="mt-6 flex justify-center">
+              <div class="mt-6 flex flex-col items-center gap-2">
                 <button
                   class="px-9 py-2.5 border-2 border-neutral-900 rounded-full text-[15px] font-medium bg-white text-neutral-900 hover:bg-neutral-900 hover:text-white transition"
                   onClick={talkNext}
                 >
                   はい
+                </button>
+                <button
+                  class="text-[12.5px] text-neutral-500 hover:text-neutral-900"
+                  onClick={finish}
+                >
+                  skip
                 </button>
               </div>
             </div>
