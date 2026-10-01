@@ -714,8 +714,8 @@ export function wsSwitch(wsid) {
 
 export function joinInvite() {
   const m = /[?&]invite=([A-Za-z0-9]+)/.exec(location.search);
-  if (!m) return;
-  api("/api/ws/join", {
+  if (!m) return Promise.resolve();
+  return api("/api/ws/join", {
     method: "POST",
     headers: JSON_HEADERS,
     body: JSON.stringify({ code: m[1] }),

@@ -33,9 +33,11 @@ const TITLES = {
 
 export default function Dash() {
   onMount(function () {
-    joinInvite();
     bootFromCache();
-    refresh();
+    Promise.race([
+      joinInvite(),
+      new Promise(function (r) { setTimeout(r, 2500); }),
+    ]).then(refresh);
     setTimeout(pollApps, 1500);
     const iv1 = setInterval(function () {
       if (!document.hidden) refresh();
