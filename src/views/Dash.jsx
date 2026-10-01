@@ -77,7 +77,7 @@ export default function Dash() {
           </For>
         </nav>
       </div>
-      <main class="max-w-5xl mx-auto px-4 pb-6 space-y-3">
+      <main class="max-w-5xl mx-auto px-4 mt-8 pb-6 space-y-3">
         <Show when={dashTab() === "overview"}>
           <div class="flex items-center justify-between">
             <h1 class="text-[28px] font-bold tracking-tight">
