@@ -7,8 +7,14 @@ import {
   setDashTab,
   configSubTab,
   setConfigSubTab,
+  state,
+  appStates,
+  mkOpen,
+  setMkOpen,
+  connectModalOpen,
+  launchApp,
+  nsOpen,
 } from "../store.js";
-import { openMarket } from "../actions.js";
 
 const btn = function (label) {
   return () =>
@@ -17,28 +23,38 @@ const btn = function (label) {
     );
 };
 
+const launchKey = function () {
+  let s = "";
+  for (const ep in appStates) {
+    const m = appStates[ep] || {};
+    for (const name in m) {
+      const a = m[name];
+      if (a && (a.running || a.installing)) s += ep + ":" + name + ";";
+    }
+  }
+  return s;
+};
+
 const STEPS = [
   {
     find: btn("Configure"),
-    text: "Workspace settings live here.",
+    done: () => dashTab() === "configure",
+    text: "Click Configure.",
   },
   {
-    tab: "configure",
     subtab: "providers",
     find: () =>
       [...document.querySelectorAll("button")].find((b) =>
         b.textContent.includes("+ Add provider")
       ),
+    done: () => (state.profiles || []).length > 0,
     text: "Connect a provider.",
   },
   {
     tab: "apps",
-    enter: openMarket,
-    find: () =>
-      [...document.querySelectorAll("h2")].find(
-        (h) => h.textContent.trim() === "marketplace"
-      ),
-    text: "Browse the marketplace.",
+    find: btn("marketplace"),
+    done: () => mkOpen(),
+    text: "Open the marketplace.",
   },
   {
     tab: "apps",
@@ -46,12 +62,22 @@ const STEPS = [
       const modal = document.querySelector('[class*="min(1080px"]');
       const grid = modal && modal.querySelector(".grid");
       if (!grid) return null;
-      return [...grid.querySelectorAll("button")].find((b) => {
-        const t = b.textContent.trim();
-        return t === "install" || t === "retry install" || t === "launch";
-      });
+      const buttons = [...grid.querySelectorAll("button")];
+      return (
+        buttons.find((b) => b.textContent.trim() === "launch") ||
+        buttons.find((b) => {
+          const t = b.textContent.trim();
+          return t === "install" || t === "retry install";
+        }) ||
+        null
+      );
     },
-    text: "Install, then launch.",
+    resume: () => {
+      if (!mkOpen()) setMkOpen(true);
+    },
+    clickLabel: "launch",
+    done: (base) => launchKey() !== base,
+    text: "Install or launch an app.",
   },
 ];
 
@@ -64,8 +90,18 @@ export default function TourOverlay() {
   const [step, setStep] = createSignal(0);
   const [rect, setRect] = createSignal(null);
   const [tick, setTick] = createSignal(0);
-  const [misses, setMisses] = createSignal(0);
   const [entered, setEntered] = createSignal(-1);
+  const [base, setBase] = createSignal("");
+  const [clickHit, setClickHit] = createSignal(false);
+
+  const busy = function () {
+    return connectModalOpen() || launchApp() || nsOpen();
+  };
+
+  const advance = function () {
+    setStep(step() + 1);
+    setRect(null);
+  };
 
   const measure = function (s) {
     const el = s.find();
@@ -87,31 +123,35 @@ export default function TourOverlay() {
       finish();
       return;
     }
-    if (s.tab && dashTab() !== s.tab) {
-      setDashTab(s.tab);
-      return;
-    }
-    if (s.subtab && configSubTab() !== s.subtab) {
-      setConfigSubTab(s.subtab);
+    if (s.done(base()) || clickHit()) {
+      advance();
       return;
     }
     if (entered() !== step()) {
       setEntered(step());
-      if (s.enter) s.enter();
+      setBase(launchKey());
+      setClickHit(false);
+      if (s.tab && dashTab() !== s.tab) setDashTab(s.tab);
+      if (s.subtab && configSubTab() !== s.subtab) setConfigSubTab(s.subtab);
       return;
     }
     const r = measure(s);
     if (!r) {
-      if (misses() < 6) {
-        setMisses(misses() + 1);
-        setTimeout(() => setTick((t) => t + 1), 150);
+      if (s.tab && dashTab() !== s.tab) {
+        setDashTab(s.tab);
         return;
       }
-      setMisses(0);
-      setStep(step() + 1);
+      if (s.subtab && configSubTab() !== s.subtab) {
+        setConfigSubTab(s.subtab);
+        return;
+      }
+      if (s.resume) {
+        s.resume();
+        return;
+      }
+      setTimeout(() => setTick((t) => t + 1), 400);
       return;
     }
-    setMisses(0);
     setRect(r);
   });
 
@@ -123,13 +163,22 @@ export default function TourOverlay() {
     const esc = (e) => {
       if (tourOpen() && e.key === "Escape") finish();
     };
+    const click = (e) => {
+      if (!tourOpen()) return;
+      const s = STEPS[step()];
+      if (!s || !s.clickLabel) return;
+      const el = s.find();
+      if (el && (el === e.target || el.contains(e.target))) setClickHit(true);
+    };
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
     window.addEventListener("keydown", esc);
+    window.addEventListener("click", click, true);
     onCleanup(() => {
       window.removeEventListener("resize", reposition);
       window.removeEventListener("scroll", reposition, true);
       window.removeEventListener("keydown", esc);
+      window.removeEventListener("click", click, true);
     });
   });
 
@@ -137,7 +186,7 @@ export default function TourOverlay() {
     const r = rect();
     if (!r) return "left:0;top:0";
     const w = 300;
-    const h = 132;
+    const h = 116;
     let top = r.top + r.height + 12;
     if (top + h > window.innerHeight - 12) top = Math.max(12, r.top - h - 12);
     let left = r.left + r.width / 2 - w / 2;
@@ -145,14 +194,9 @@ export default function TourOverlay() {
     return "left:" + Math.round(left) + "px;top:" + Math.round(top) + "px";
   };
 
-  const next = function () {
-    if (step() >= STEPS.length - 1) finish();
-    else setStep(step() + 1);
-  };
-
   return (
-    <Show when={tourOpen() && rect()}>
-      <div class="fixed inset-0 z-[45]">
+    <Show when={tourOpen() && rect() && !busy()}>
+      <div class="fixed inset-0 z-[45] pointer-events-none">
         <div
           class="absolute border-2 border-white rounded-lg"
           style={
@@ -169,7 +213,7 @@ export default function TourOverlay() {
         ></div>
       </div>
       <div
-        class="fixed z-[60] w-[300px] bg-white border border-neutral-300 rounded-xl shadow-xl p-4"
+        class="fixed z-[60] w-[300px] bg-white border border-neutral-300 rounded-xl shadow-xl p-4 pointer-events-auto"
         style={popupPos()}
       >
         <p class="text-[13.5px] leading-snug text-neutral-800">{STEPS[step()].text}</p>
@@ -180,17 +224,9 @@ export default function TourOverlay() {
           >
             skip
           </button>
-          <div class="flex items-center gap-3">
-            <span class="text-[11px] text-neutral-400">
-              {step() + 1}/{STEPS.length}
-            </span>
-            <button
-              class="px-4 py-1.5 text-[13px] font-medium bg-neutral-900 text-white rounded-lg hover:bg-neutral-700"
-              onClick={next}
-            >
-              {step() >= STEPS.length - 1 ? "done" : "next"}
-            </button>
-          </div>
+          <span class="text-[11px] text-neutral-400">
+            {step() + 1}/{STEPS.length}
+          </span>
         </div>
       </div>
     </Show>

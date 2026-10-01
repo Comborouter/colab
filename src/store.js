@@ -137,3 +137,24 @@ export const effViewEp = createMemo(function () {
 });
 
 export const refs = {};
+
+if (import.meta.env.DEV) {
+  window.__store = {
+    state,
+    setState,
+    appStates,
+    setAppStates,
+    bootMsg,
+    tourOpen,
+    setTourOpen,
+    connectModalOpen,
+    setConnectModalOpen,
+    launchApp,
+    nsOpen,
+    dashTab,
+    configSubTab,
+    mkOpen,
+    lsGet,
+    lsSet,
+  };
+}
