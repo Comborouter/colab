@@ -504,9 +504,22 @@ export async function installSubmit(btn) {
   const vals = launchVars() || {};
   for (let i = 0; i < defs.length; i++) {
     const d = defs[i] || {};
-    if (d.required && !String(vals[d.name] != null ? vals[d.name] : "").trim()) {
+    const v = String(vals[d.name] != null ? vals[d.name] : "");
+    if (d.required && !v.trim()) {
       setLaunchMsg("required: " + (d.label || d.name));
       return;
+    }
+    if (d.validate === "url" && v.trim()) {
+      let u = null;
+      try {
+        u = new URL(v.trim());
+      } catch {}
+      if (!u || (u.protocol !== "http:" && u.protocol !== "https:")) {
+        setLaunchMsg(
+          "invalid " + (d.label || d.name) + " — must start with http:// or https://"
+        );
+        return;
+      }
     }
   }
   busy(btn, "working");

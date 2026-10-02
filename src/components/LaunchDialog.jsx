@@ -89,23 +89,48 @@ export default function LaunchDialog() {
                           {d.required ? "* " : ""}
                           {d.label || d.name}
                         </span>
-                        <input
-                          type={d.secret ? "password" : "text"}
-                          class="inp w-full"
-                          placeholder={
-                            d.default != null && d.default !== ""
-                              ? String(d.default)
-                              : "optional"
+                        <Show
+                          when={d.type === "checkbox"}
+                          fallback={
+                            <input
+                              type={d.secret ? "password" : "text"}
+                              class="inp w-full"
+                              placeholder={
+                                d.default != null && d.default !== ""
+                                  ? String(d.default)
+                                  : "optional"
+                              }
+                              value={(launchVars() || {})[d.name] || ""}
+                              onInput={(e) =>
+                                setLaunchVars(
+                                  Object.assign({}, launchVars(), {
+                                    [d.name]: e.currentTarget.value,
+                                  })
+                                )
+                              }
+                            />
                           }
-                          value={(launchVars() || {})[d.name] || ""}
-                          onInput={(e) =>
-                            setLaunchVars(
-                              Object.assign({}, launchVars(), {
-                                [d.name]: e.currentTarget.value,
-                              })
-                            )
-                          }
-                        />
+                        >
+                          <label class="flex items-center gap-2 text-xs text-neutral-700 select-none">
+                            <input
+                              type="checkbox"
+                              class="accent-neutral-700"
+                              checked={
+                                String((launchVars() || {})[d.name] || "") === "true"
+                              }
+                              onChange={(e) =>
+                                setLaunchVars(
+                                  Object.assign({}, launchVars(), {
+                                    [d.name]: e.currentTarget.checked
+                                      ? "true"
+                                      : "false",
+                                  })
+                                )
+                              }
+                            />
+                            <span>on</span>
+                          </label>
+                        </Show>
                       </>
                     )}
                   </For>
